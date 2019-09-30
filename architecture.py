@@ -78,7 +78,7 @@ class Player:
             def dodge(self):
                 # chance = 0
                 # if player1.speed > player2.speed:
-                #   chance = player2.speed / player1.speed
+                #   chance = 1 - player2.speed / player1.speed
                 #   return chance
 
             @property
