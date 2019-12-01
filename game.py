@@ -1,71 +1,55 @@
-from hero import Hero
-from random import shuffle
-from random import choice
+from models import Hero
+from functions import sorted_by_speed, choose_victim, random_victim
+
 
 team1 = [
-    Hero(130, 50, 130, 'Witkur'),
-    Hero(200, 120, 200, 'Marcin'),
-    Hero(200, 20, 120, 'Ania'),
-]
+    Hero('Batman', 200, 40, 70, 50, 'back'),
+    Hero('Superman', 210, 40, 80, 60, 'front'),
+    Hero('Green Lantern', 180, 30, 90, 90, 'back'),
+    Hero('Wonder Woman', 180, 30, 70, 60, 'back'),
+    ]
 
 team2 = [
-    Hero(110, 40, 200, 'Zbyszek'),
-    Hero(90, 50, 240, 'Biskup'),
-    Hero(130, 70, 200, 'Sztefan'),
-]
+    Hero('Spider-Man', 190, 40, 80, 70, 'back'),
+    Hero('Thor', 180, 30, 80, 80, 'back'),
+    Hero('Iron Man', 190, 40, 70, 60, 'front'),
+    Hero('Hulk', 190, 40, 80, 80, 'back'),
+    ]
 
+print(f'\nThe fight between: \nteam: {team1}\nand\nteam: {team2}\nhas begun...')
 
-print()
-for fight_round in range(1, 100):
+round = 0
 
-    shuffle(team1)
-    shuffle(team2)
+while len(team1) > 0 and len(team2) > 0:
+    round += 1
+    print(f'-------------------------- Round {round} --------------------------\n')
+    player_hero = None
+    npc_hero = None
+    team1 = sorted_by_speed(team1)
+    team2 = sorted_by_speed(team2)
+    turns = len(team1) + len(team2)
+    heroes = team1.copy()
+    enemies = team2.copy()
 
-    if len(team1) > 0 and len(team2) > 0:
-        print(f'-------------------------- Round {fight_round} --------------------------\n')
-
-        attacking_hero1 = None
-        attacking_hero2 = None
-
-        for i in range(len(team1) + len(team2)):
-            try:
-                attacking_hero1 = team1[i]
-                attacking_hero2 = team2[i]
-            except IndexError:
-                continue
-
-            print(f'{attacking_hero1.name} is attacking.')
-            print('--------------------------')
-
-            victim2 = choice(team2)
-            damage = attacking_hero1.make_attack()
-            victim2.get_hit(damage)
-            if victim2.is_dead:
-                team2.remove(victim2)
-                print()
+    for i in range(0, turns):
+        try:
+            if heroes[0].speed >= enemies[0].speed:  # gracz ma pierwszeństwo nad npc jesli mają równą szybkość
+                player_hero = heroes[0]
+                print(f'{player_hero.name} is attacking.')
+                print(f'{player_hero.name} attacked {choose_victim(team2).name}\n')
+                heroes.remove(player_hero)
             else:
-                print(victim2, '\n')
-
-            print(f'{attacking_hero2.name} is attacking.')
-            print('--------------------------')
-
-            victim1 = choice(team1)
-            damage = attacking_hero2.make_attack()
-            victim1.get_hit(damage)
-            if victim1.is_dead:
-                team1.remove(victim1)
-                print()
-            else:
-                print(victim1, '\n')
-
-    if len(team1) > 0 and len(team2) == 0:
-        print(f'End of the fight!\n'
-              f'{team1} rozjebal wszystkich!\n'
-              f'Fight took {fight_round} rounds.')
-        break
-
-    if len(team2) > 0 and len(team1) == 0:
-        print(f'End of the fight!\n'
-              f'{team2} rozjebal wszystkich!\n'
-              f'Fight took {fight_round} rounds.')
-        break
+                npc_hero = enemies[0]
+                print(f'{npc_hero.name} is attacking.')
+                print(f'{npc_hero.name} attacked {random_victim(team1).name}\n')
+                enemies.remove(npc_hero)
+        except IndexError:
+            continue
+        else:
+            if len(enemies) == 0:
+                print(f'{heroes[0].name} is attacking.')
+                print(f'{heroes[0].name} attacked {choose_victim(team2).name}')
+                break
+            if len(heroes) == 0:
+                print(f'{enemies[0].name} is attacking.')
+                break
