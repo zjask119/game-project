@@ -9,20 +9,20 @@ def sorted_by_speed(team):
 def ask_victim(team):
     while True:
         try:
-            print('\nChoose one of your opponents.')
-            num = int(input('Number of opponent is: '))
+            print(f'\nChoose one of your opponents (1 - {len(team)}).')
+            index = int(input('Number of opponent is: '))
         except ValueError:
+            print('Given number is not valid! Try again.')
             continue
-        if num in range(1, len(team)+1):
-            return num
+        if index in range(1, len(team)+1):
+            return index
 
 
-def choose_victim(team):
-    print('Choose opponent from enemy team to attack\n')
-    number = 1
-    for hero in range(0, len(team)):
-        print(f'{number}. {team[number-1]},')
-        number += 1
+def choose_victim(team, team_energy):
+    print('Choose opponent from enemy team to attack.\n')
+    print(f'Energy status: {team_energy}')
+    for i, hero in enumerate(team, 1):
+        print(f'{i}. {hero}')
     num = ask_victim(team)
     if any(hero.area == 'front' for hero in team):
         while team[num-1].area != 'front':
@@ -36,9 +36,8 @@ def choose_victim(team):
 
 def random_victim(team):
     if any(hero.area == 'front' for hero in team):
-        victim = choice(team)
-        while victim.area != 'front':
-            victim = choice(team)
+        front_line = [hero for hero in team if hero.area == 'front']
+        victim = choice(front_line)
         return victim
     else:
         victim = choice(team)
