@@ -1,6 +1,8 @@
 from operator import attrgetter
 from random import choice
 
+from models import HeroAreaEnum
+
 
 def sorted_by_speed(team):
     return sorted(team, key=attrgetter('speed'), reverse=True)
@@ -24,8 +26,8 @@ def choose_victim(team, team_energy):
     for i, hero in enumerate(team, 1):
         print(f'{i}. {hero}')
     num = ask_victim(team)
-    if any(hero.area == 'front' for hero in team):
-        while team[num-1].area != 'front':
+    if any(hero.area == HeroAreaEnum.FRONT for hero in team):
+        while team[num-1].area != HeroAreaEnum.FRONT:
             print(f'Cannot attack {team[num - 1].name} now.')
             print('First eliminate warriors from the front area.')
             num = ask_victim(team)
@@ -35,8 +37,8 @@ def choose_victim(team, team_energy):
 
 
 def random_victim(team):
-    if any(hero.area == 'front' for hero in team):
-        front_line = [hero for hero in team if hero.area == 'front']
+    if any(hero.area == HeroAreaEnum.FRONT for hero in team):
+        front_line = [hero for hero in team if hero.area == HeroAreaEnum.FRONT]
         victim = choice(front_line)
         return victim
     else:

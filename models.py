@@ -1,6 +1,18 @@
+from enum import Enum
+
+
+class HeroAreaEnum(Enum):
+    FRONT = 1
+    BACK = 2
+
+    def __str__(self):
+        return self.name
+
+
 class Hero:
 
-    def __init__(self, name: str, hp: float, defence: float, attack: float, speed: float, area: str):
+    def __init__(self, name: str, hp: float, defence: float, attack: float,
+                 speed: float, area: HeroAreaEnum = HeroAreaEnum.BACK):
         self.name = name
         self.hp = hp
         self.defence = defence
