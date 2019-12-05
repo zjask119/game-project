@@ -11,13 +11,14 @@ class HeroAreaEnum(Enum):
 
 class Hero:
 
-    def __init__(self, name: str, hp: float, defence: float, attack: float,
-                 speed: float, area: HeroAreaEnum = HeroAreaEnum.BACK):
+    def __init__(self, id: int,  name: str, hp: float, defence: float,
+                 speed: float, moves: list, area: HeroAreaEnum = HeroAreaEnum.BACK):
+        self.id = id
         self.name = name
         self.hp = hp
         self.defence = defence
-        self.attack = attack
         self.speed = speed
+        self.moves = moves
         self.area = area
         self.is_alive = True
 
@@ -27,10 +28,15 @@ class Hero:
 
 class Attack:
 
-    def __init__(self, name, power, speed, cost=0, victim='target', sacrifice=0):
+    def __init__(self, id: int, name, power, speed, cost=0, victim='target', sacrifice=0):
+        self.id = id
         self.name = name
         self.power = power
         self.speed = speed
         self.cost = cost
         self.victim = victim
         self.sacrifice = sacrifice
+
+
+    def __repr__(self):
+        return f'{self.name}'

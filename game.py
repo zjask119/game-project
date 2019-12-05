@@ -1,20 +1,36 @@
-from models import Hero, HeroAreaEnum
+from models import Hero, Attack, HeroAreaEnum
 from functions import sorted_by_speed, choose_victim, random_victim
 
 
 def main():
     team1 = [
-        Hero('Batman', 200, 40, 70, 50),
-        Hero('Superman', 210, 40, 80, 60),
-        Hero('Green Lantern', 180, 30, 90, 90),
-        Hero('Wonder Woman', 180, 30, 70, 60),
+        Hero(5, 'Batman', 200, 40, 70, [Attack(1, 'punch', 51, 70),
+                                        Attack(2, 'kick', 57, 72, 1),
+                                        Attack(3, 'combo', 62, 75, 2)], ),
+        Hero(6, 'Superman', 210, 40, 80, [Attack(4, 'punch', 78, 80),
+                                          Attack(5, 'kick', 82, 82, 1),
+                                          Attack(6, 'combo', 87, 85, 2)], ),
+        Hero(7, 'Green Lantern', 180, 30, 90, [Attack(7, 'punch', 80, 81),
+                                               Attack(8, 'kick', 84, 83, 1),
+                                               Attack(9, 'combo', 89, 84, 2)], ),
+        Hero(8, 'Wonder Woman', 180, 30, 70, [Attack(10, 'punch', 71, 76),
+                                              Attack(11, 'kick', 74, 77, 1),
+                                              Attack(12, 'combo', 78, 79, 2)], ),
         ]
 
     team2 = [
-        Hero('Spider-Man', 190, 40, 80, 70, HeroAreaEnum.BACK),
-        Hero('Thor', 180, 30, 80, 80, HeroAreaEnum.BACK),
-        Hero('Iron Man', 190, 40, 70, 60, HeroAreaEnum.FRONT),
-        Hero('Hulk', 190, 40, 80, 80, HeroAreaEnum.BACK),
+        Hero(1, 'Spider-Man', 190, 40, 80, [Attack(1, 'punch', 59, 80),
+                                            Attack(2, 'kick', 65, 82, 1),
+                                            Attack(3, 'combo', 69, 85, 2)], HeroAreaEnum.BACK),
+        Hero(2, 'Thor', 180, 30, 80, [Attack(1, 'punch', 53, 80),
+                                      Attack(2, 'kick', 57, 83, 1),
+                                      Attack(3, 'combo', 60, 84, 2)], HeroAreaEnum.BACK),
+        Hero(3, 'Iron Man', 190, 40, 70, [Attack(1, 'punch', 51, 70),
+                                          Attack(2, 'kick', 57, 72, 1),
+                                          Attack(3, 'combo', 63, 77, 2)], HeroAreaEnum.FRONT),
+        Hero(4, 'Hulk', 190, 40, 80, [Attack(1, 'punch', 65, 77),
+                                      Attack(2, 'kick', 70, 83, 1),
+                                      Attack(3, 'combo', 74, 90, 2)], HeroAreaEnum.BACK),
         ]
 
     area_text_list = [f'{x.value} -> {x.name} area'
