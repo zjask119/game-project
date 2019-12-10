@@ -1,5 +1,13 @@
 from models import Hero, Attack, HeroAreaEnum
-from functions import sorted_by_speed, choose_victim, random_victim
+from functions import sorted_by_speed, \
+    choose_victim, \
+    random_victim, \
+    choose_attack, \
+    damage_calc, \
+    dodge_chance, \
+    hp_reduction, \
+    stat_reduction, \
+    roll
 
 
 def main():
@@ -9,10 +17,10 @@ def main():
                                         Attack(3, 'combo', 62, 75, 2)], ),
         Hero(6, 'Superman', 210, 40, 80, [Attack(4, 'punch', 78, 80),
                                           Attack(5, 'kick', 82, 82, 1),
-                                          Attack(6, 'combo', 87, 85, 2)], ),
-        Hero(7, 'Green Lantern', 180, 30, 90, [Attack(7, 'punch', 80, 81),
-                                               Attack(8, 'kick', 84, 83, 1),
-                                               Attack(9, 'combo', 89, 84, 2)], ),
+                                          Attack(6, 'combo', 99, 85, 2)], ),
+        Hero(7, 'Green Lantern', 180, 30, 90, [Attack(7, 'punch', 80, 70),
+                                               Attack(8, 'kick', 84, 70, 1),
+                                               Attack(9, 'combo', 300, 70, 2)], ),
         Hero(8, 'Wonder Woman', 180, 30, 70, [Attack(10, 'punch', 71, 76),
                                               Attack(11, 'kick', 74, 77, 1),
                                               Attack(12, 'combo', 78, 79, 2)], ),
@@ -25,7 +33,7 @@ def main():
         Hero(2, 'Thor', 180, 30, 80, [Attack(1, 'punch', 53, 80),
                                       Attack(2, 'kick', 57, 83, 1),
                                       Attack(3, 'combo', 60, 84, 2)], HeroAreaEnum.BACK),
-        Hero(3, 'Iron Man', 190, 40, 70, [Attack(1, 'punch', 51, 70),
+        Hero(3, 'Iron Man', 190, 40, 80, [Attack(1, 'punch', 51, 70),
                                           Attack(2, 'kick', 57, 72, 1),
                                           Attack(3, 'combo', 63, 77, 2)], HeroAreaEnum.FRONT),
         Hero(4, 'Hulk', 190, 40, 80, [Attack(1, 'punch', 65, 77),
@@ -54,6 +62,13 @@ def main():
     round = 0
     team1_energy = 0
     team2_energy = 0
+    heroes = team1.copy()
+    enemies = team2.copy()
+    heroes = sorted_by_speed(heroes)
+    enemies = sorted_by_speed(enemies)
+
+    # while any(hero.alive == True for hero in heroes) and (hero.alive == True for hero in enemies):
+    #     pass
 
     while len(team1) > 0 and len(team2) > 0:
         round += 1
@@ -64,18 +79,30 @@ def main():
 
         print(f'-------------------------- Round {round} --------------------------\n')
 
-        team1 = sorted_by_speed(team1)
-        team2 = sorted_by_speed(team2)
         turns = len(team1) + len(team2)
-        heroes = team1.copy()
-        enemies = team2.copy()
 
         for i in range(0, turns):
             try:
-                if heroes[0].speed >= enemies[0].speed:  # gracz ma pierwszeństwo nad npc jesli mają równą szybkość
+                if heroes[0].speed >= enemies[0].speed:  # player has priority if the speed is equal for both
                     player_hero = heroes[0]
-                    print(f'{player_hero.name} is attacking.')
-                    print(f'{player_hero.name} attacked {choose_victim(team2, team1_energy).name}\n')
+                    print(f'{player_hero.name} is attacking. Energy status: {team1_energy}')
+                    victim_position = choose_victim(enemies)
+                    victim = enemies[victim_position]
+                    attack = choose_attack(player_hero.moves)
+                    dodge = dodge_chance(attack.speed, victim.speed)
+                    print(f'Success rate: {dodge * 100}%')
+                    if roll(dodge):
+                        print('SUCCESS!')
+                        damage = damage_calc(attack.power, victim.defence)
+                        victim.hp = hp_reduction(damage, victim.hp)
+                        victim.speed = stat_reduction(team2[victim_position].hp, victim.hp, victim.speed)
+                        victim.defence = stat_reduction(team2[victim_position].hp, victim.hp, victim.defence)
+                        for attack in victim.moves:
+                            attack.power = stat_reduction(team2[victim_position].hp, victim.hp, attack.power)
+                            attack.speed = stat_reduction(team2[victim_position].hp, victim.hp, attack.speed)
+                        print(f'{player_hero.name} attacked {victim.name} and dealt {damage} damage points.\n')
+                    else:
+                        print(f'FAILED! {player_hero.name} missed!')
                     heroes.remove(player_hero)
                 else:
                     npc_hero = enemies[0]
@@ -87,7 +114,8 @@ def main():
             else:
                 if len(enemies) == 0:
                     print(f'{heroes[0].name} is attacking.')
-                    print(f'{heroes[0].name} attacked {choose_victim(team2, team1_energy).name}')
+                    print(f'Selected move: {choose_attack(heroes[0].moves)}')
+                    print(f'{heroes[0].name} attacked {choose_victim(team2).name}')
                     break
                 if len(heroes) == 0:
                     print(f'{enemies[0].name} is attacking.')
@@ -96,3 +124,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    while any(hero.alive == True for hero in heroes):
+        pass

@@ -20,15 +20,15 @@ class Hero:
         self.speed = speed
         self.moves = moves
         self.area = area
-        self.is_alive = True
+        self.alive = True
 
     def __repr__(self):
-        return f'{self.name} with Hp: {self.hp}, area: {self.area}'
+        return f'{self.name} with Hp: {self.hp}, def: {self.defence}, speed: {self.speed}, area: {self.area}'
 
 
 class Attack:
 
-    def __init__(self, id: int, name, power, speed, cost=0, victim='target', sacrifice=0):
+    def __init__(self, id, name, power, speed, cost=0, victim='target', sacrifice=0):
         self.id = id
         self.name = name
         self.power = power
@@ -39,4 +39,4 @@ class Attack:
 
 
     def __repr__(self):
-        return f'{self.name}'
+        return f'{self.name}, power: {self.power}, cost: {self.cost}'
