@@ -69,9 +69,5 @@ def prepare_teams():
         ),
     ]
 
-    teams = [
-        Team(name='Best team ever!', heroes=heroes_list_team_1),
-        Team(name='Bad guys!', heroes=heroes_list_team_2),
-    ]
-
-    return teams
+    return (Team(name='Best team ever', heroes=heroes_list_team_1),
+            Team(name='Bad guys', heroes=heroes_list_team_2))
