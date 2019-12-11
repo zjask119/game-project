@@ -5,10 +5,6 @@ from math import sqrt
 from models import HeroAreaEnum
 
 
-def sorted_by_speed(team):
-    return sorted(team, key=attrgetter('speed'), reverse=True)
-
-
 def ask_values(values):
     while True:
         try:
