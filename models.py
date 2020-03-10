@@ -164,16 +164,22 @@ class Hero:
         if new_hp == 0:
             self.alive = False
         self.current_hp = new_hp
-
+              
     def choose_attack(self):
         if self.team.npc:
             return choice(self.moves)
-        print('Choose one of possible moves.\n')
-        for i, attack in enumerate(self.moves, 1):
-            print(f'{i}. {attack}')
-        num = Game.ask_number(self.moves)
-        return self.moves[num - 1]
-
+        while True:
+            print('Choose one of possible moves.\n')
+            for i, attack in enumerate(self.moves, 1):
+                print(f'{i}. {attack}')
+            num = Game.ask_number(self.moves)
+            if self.moves[num - 1].cost <= self.team.energy:
+                self.team.energy -= self.moves[num - 1].cost
+                return self.moves[num - 1]
+            else:
+                print("LOW ENERGY!")
+                continue
+    
     def attack_hero(self, victim_hero):
         attack = self.choose_attack()
         success = random() < self.hit_chance(attack, victim_hero)
