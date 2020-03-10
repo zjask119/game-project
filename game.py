@@ -32,7 +32,15 @@ def main():
 
     while human_team.is_anybody_alive() and comp_team.is_anybody_alive():
 
+        human_team.energy = 0
+        comp_team.energy = 0
         game_round += 1
+
+        if human_team.energy < 8:
+            human_team.energy += 2*game_round
+
+        if comp_team.energy < 8:
+            comp_team.energy += 2*game_round
 
         print(f'-------------------------- Round {game_round} --------------------------\n')
 
@@ -50,8 +58,13 @@ def main():
 
             victim_hero = game.choose_victim(enemy_team)
             striker_hero.attack_hero(victim_hero)
+            
+            if not human_team.is_anybody_alive():
+                print('You lost...')
+                break
 
-            if not(human_team.is_anybody_alive() and comp_team.is_anybody_alive()):
+            if not comp_team.is_anybody_alive():
+                print('You won!')
                 break
 
 
