@@ -1,72 +1,67 @@
-from models import HeroAreaEnum, Game
-from utils import prepare_teams, print_teams
+from models import HeroAreaEnum
+from random import choice
+from operator import attrgetter
 
 
-def main():
-    human_team, comp_team = prepare_teams()
-    game = Game(teams=[human_team, comp_team])
+class Game:
 
-    available_areas = [f'{x.value} -> {x.name} area'
-                       for x in HeroAreaEnum.__members__.values()]
-    print('Assign one of the listed areas to the heroes:\n',
-          '\n'.join(available_areas))
+    def __init__(self, teams=None):
+        self.teams = []
+        if teams and isinstance(teams, list):
+            for team in teams:
+                self.add_team(team)
 
-    for hero in human_team.get_all_heroes():
+    def add_team(self, team):
+        self.teams.append(team)
+
+    def get_all_heroes(self, sorted_by='speed'):
+        heroes = []
+        for team in self.teams:
+            heroes.extend(team.get_all_heroes(sorted_by=None))
+
+        heroes = sorted(heroes, key=attrgetter(sorted_by), reverse=True)
+        return heroes
+
+    def get_alive_heroes(self, sorted_by='speed'):
+        return [hero for hero in self.get_all_heroes(sorted_by) if hero.alive]
+
+    @staticmethod
+    def ask_number(values):
         while True:
             try:
-                area_num = int(input(f'Choose area (number) for hero {hero.name}: '))
-                area = HeroAreaEnum(area_num)
+                print(f'\nChoose between 1 - {len(values)}.')
+                index = int(input('Your Choice is: '))
             except ValueError:
-                print('Number is not valid! Try again')
-            else:
-                hero.area = area
-                break
-
-    print(f'\nThe fight between:\n'
-          f'{human_team}\n'
-          f'and\n'
-          f'{comp_team}\n'
-          f'has begun...')
-
-    game_round = 0
-
-    while human_team.is_anybody_alive() and comp_team.is_anybody_alive():
-
-        human_team.energy = 0
-        comp_team.energy = 0
-        game_round += 1
-
-        if human_team.energy < 8:
-            human_team.energy += 2*game_round
-
-        if comp_team.energy < 8:
-            comp_team.energy += 2*game_round
-
-        print(f'-------------------------- Round {game_round} --------------------------\n')
-
-        for striker_hero in game.get_alive_heroes():
-            if not striker_hero.alive:
+                print('Given number is not valid! Try again.')
                 continue
+            if index in range(1, len(values) + 1):
+                return index
 
-            print_teams(game)
-            print(f'{striker_hero.name} is attacking. Energy status: {striker_hero.team.energy}')
+    @staticmethod
+    def choose_victim(enemy_team):
+        heroes = enemy_team.get_alive_heroes()
 
-            if striker_hero.team.npc:
-                enemy_team = human_team
-            else:
-                enemy_team = comp_team
+        if not enemy_team.npc:
+            return Game.random_victim(heroes)
 
-            victim_hero = game.choose_victim(enemy_team)
-            striker_hero.attack_hero(victim_hero)
-            
-            if not human_team.is_anybody_alive():
-                print('You lost...')
-                break
+        print('Choose opponent from enemy team to attack.\n')
+        for i, hero in enumerate(heroes, 1):
+            print(f'{i}. {hero}')
+        num = Game.ask_number(heroes)
+        if any(hero.area == HeroAreaEnum.FRONT for hero in heroes):
+            while heroes[num - 1].area != HeroAreaEnum.FRONT:
+                print(f'Cannot attack {heroes[num - 1].name} now.')
+                print('First eliminate warriors from the front area.')
+                num = Game.ask_number(heroes)
+            return heroes[num - 1]
+        else:
+            return heroes[num - 1]
 
-            if not comp_team.is_anybody_alive():
-                print('You won!')
-                break
-
-
-if __name__ == "__main__":
-    main()
+    @staticmethod
+    def random_victim(heroes):
+        if any(hero.area == HeroAreaEnum.FRONT for hero in heroes):
+            front_line = [hero for hero in heroes if hero.area == HeroAreaEnum.FRONT]
+            victim = choice(front_line)
+        else:
+            victim = choice(heroes)
+        return victim
