@@ -70,8 +70,8 @@ class Hero:
                 continue
 
     def attack_hero(self, victim_hero):
-        attack = self.choose_at*tack()
-        success = random() < self.hit_chance(attack, victim_hero)
+        attack = self.choose_attack()
+        success = random.random() < self.hit_chance(attack, victim_hero)
         if not success:
             print('You missed, looser')
             return
