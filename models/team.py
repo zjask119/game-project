@@ -1,5 +1,6 @@
-from models.hero import Hero
 from operator import attrgetter
+
+from models.hero import Hero
 
 
 class Team:

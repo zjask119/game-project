@@ -1,7 +1,7 @@
-from models.enums import HeroAreaEnum
-from utils import prepare_teams
-from models.game import Game
 import displayer
+from models.enums import HeroAreaEnum
+from models.game import Game
+from utils import prepare_teams
 
 
 def main():
@@ -16,7 +16,8 @@ def main():
     for hero in human_team.get_all_heroes():
         while True:
             try:
-                area_num = int(input(f'Choose area (number) for hero {hero.name}: '))
+                area_num = int(
+                    input(f'Choose area (number) for hero {hero.name}: '))
                 area = HeroAreaEnum(area_num)
             except ValueError:
                 print('Number is not valid! Try again')
@@ -44,14 +45,16 @@ def main():
         if comp_team.energy < 8:
             comp_team.energy += 2 * game_round
 
-        print(f'-------------------------- Round {game_round} --------------------------\n')
+        print(
+            f'-------------------------- Round {game_round} --------------------------\n')
 
         for striker_hero in game.get_alive_heroes():
             if not striker_hero.alive:
                 continue
 
             displayer.print_teams(game)
-            print(f'{striker_hero.name} is attacking. Energy status: {striker_hero.team.energy}')
+            print(
+                f'{striker_hero.name} is attacking. Energy status: {striker_hero.team.energy}')
 
             if striker_hero.team.npc:
                 enemy_team = human_team

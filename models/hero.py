@@ -1,7 +1,8 @@
-import random
 import math
-from models.game import Game
+import random
+
 from models.enums import HeroAreaEnum
+from models.game import Game
 
 
 class Hero:
@@ -77,7 +78,8 @@ class Hero:
             return
 
         damage = self.damage_calc(attack, victim_hero)
-        print(f'{self.name} attacked {victim_hero.name} and dealt {damage} damage points.\n')
+        print(
+            f'{self.name} attacked {victim_hero.name} and dealt {damage} damage points.\n')
         victim_hero.hp_reduction(damage)
 
     def __repr__(self):

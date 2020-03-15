@@ -9,7 +9,8 @@ def print_teams(game):
             msg = '|' + str(data).center(to_add) + '|'
         elif isinstance(data, list):
             to_add = int(n / len(data)) - 1
-            msg = '|' + '|'.join(str(content).center(to_add) for content in data) + '|'
+            msg = '|' + '|'.join(str(content).center(to_add)
+                                 for content in data) + '|'
         else:
             raise NotImplementedError
 
@@ -30,7 +31,8 @@ def print_teams(game):
         heroes = [team.get_all_heroes()[i] for team in game.teams]
         heroes_info = []
         for hero in heroes:
-            heroes_info.extend([hero.name, hero.current_hp, hero.defence, hero.speed, hero.area])
+            heroes_info.extend([hero.name, hero.current_hp,
+                                hero.defence, hero.speed, hero.area])
         msg += _wrap_content(heroes_info, line_separator=False)
     msg += _get_line_separator()
     print(msg)
