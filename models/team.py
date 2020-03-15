@@ -36,6 +36,13 @@ class Team:
     def num_of_alive_heroes(self):
         return len(self.get_alive_heroes())
 
+    def set_energy(self, points):
+        self.energy = points
+
+    def reduce_heroes_attributes(self):
+        for hero in self.get_all_heroes():
+            hero.reduce_attributes()
+
     def __repr__(self):
         return (f'{self.name} with heroes:\n\t' +
                 '\n\t'.join([str(hero) for hero in self.get_all_heroes()]))

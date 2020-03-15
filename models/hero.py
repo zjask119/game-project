@@ -11,27 +11,31 @@ class Hero:
                  speed: float, moves: list,
                  area: HeroAreaEnum = HeroAreaEnum.BACK):
         self.name = name
-        self.current_hp = hp
+
+        self.hp = hp
+        self.defence = defence
+        self.speed = speed
+
         self.initial_hp = hp
         self.initial_defence = defence
         self.initial_speed = speed
+
         self.moves = moves
         self.area = area
         self.alive = True
         self.team = None
 
     @property
-    def speed(self):
-        return round(self.initial_speed * self.reduction_factor, 1)
-
-    @property
-    def defence(self):
-        return round(self.initial_defence * self.reduction_factor, 1)
-
-    @property
     def reduction_factor(self):
-        factor = self.current_hp / self.initial_hp
+        factor = self.hp / self.initial_hp
         return round(math.sqrt(factor), 1)
+
+    def reduce_attributes(self):
+        self.speed = round(self.initial_speed * self.reduction_factor, 1)
+        self.defence = round(self.initial_defence * self.reduction_factor, 1)
+        for move in self.moves:
+            move.power = round(move.power * self.reduction_factor, 1)
+            move.speed = round(move.speed * self.reduction_factor, 1)
 
     @staticmethod
     def hit_chance(attack, victim_hero):
@@ -49,11 +53,11 @@ class Hero:
         return max(0, damage)
 
     def hp_reduction(self, damage):
-        new_hp = self.current_hp - damage
+        new_hp = self.hp - damage
         new_hp = max(0, new_hp)
         if new_hp == 0:
             self.alive = False
-        self.current_hp = new_hp
+        self.hp = new_hp
 
     def choose_attack(self):
         if self.team.npc:
@@ -62,12 +66,14 @@ class Hero:
             print('Choose one of possible moves.\n')
             for i, attack in enumerate(self.moves, 1):
                 print(f'{i}. {attack}')
-            num = Game.ask_number(self.moves)
-            if self.moves[num - 1].cost <= self.team.energy:
-                self.team.energy -= self.moves[num - 1].cost
-                return self.moves[num - 1]
+            num = Game.ask_number(self.moves) - 1
+            move = self.moves[num]
+
+            if move.cost <= self.team.energy:
+                self.team.energy -= move.cost
+                return move
             else:
-                print("LOW ENERGY!")
+                print("LOW ENERGY! - Choose another attack")
                 continue
 
     def attack_hero(self, victim_hero):
@@ -83,4 +89,4 @@ class Hero:
         victim_hero.hp_reduction(damage)
 
     def __repr__(self):
-        return f'{self.name} with Hp: {self.current_hp}, def: {self.defence}, speed: {self.speed}, area: {self.area}'
+        return f'{self.name} with Hp: {self.hp}, def: {self.defence}, speed: {self.speed}, area: {self.area}'

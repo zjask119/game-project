@@ -35,15 +35,12 @@ def main():
 
     while human_team.is_anybody_alive() and comp_team.is_anybody_alive():
 
-        human_team.energy = 0
         comp_team.energy = 0
         game_round += 1
 
-        if human_team.energy < 8:
-            human_team.energy += 2 * game_round
-
-        if comp_team.energy < 8:
-            comp_team.energy += 2 * game_round
+        energy = 2 * game_round
+        human_team.set_energy(energy)
+        comp_team.set_energy(energy)
 
         print(
             f'-------------------------- Round {game_round} --------------------------\n')
@@ -71,6 +68,9 @@ def main():
             if not comp_team.is_anybody_alive():
                 print('You won!')
                 break
+
+        human_team.reduce_heroes_attributes()
+        comp_team.reduce_heroes_attributes()
 
 
 if __name__ == "__main__":

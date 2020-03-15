@@ -31,7 +31,7 @@ def print_teams(game):
         heroes = [team.get_all_heroes()[i] for team in game.teams]
         heroes_info = []
         for hero in heroes:
-            heroes_info.extend([hero.name, hero.current_hp,
+            heroes_info.extend([hero.name, hero.hp,
                                 hero.defence, hero.speed, hero.area])
         msg += _wrap_content(heroes_info, line_separator=False)
     msg += _get_line_separator()
