@@ -1,7 +1,7 @@
 import random
 import math
 from game import Game
-from models import HeroAreaEnum
+from enums import HeroAreaEnum
 
 
 class Hero:

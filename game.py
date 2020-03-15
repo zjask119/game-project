@@ -1,4 +1,4 @@
-from models import HeroAreaEnum
+from enums import HeroAreaEnum
 from random import choice
 from operator import attrgetter
 
