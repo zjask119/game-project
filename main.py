@@ -1,6 +1,6 @@
-from enums import HeroAreaEnum
+from models.enums import HeroAreaEnum
 from utils import prepare_teams
-from game import Game
+from models.game import Game
 import displayer
 
 
