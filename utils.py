@@ -1,7 +1,7 @@
-from attack import Attack
-from team import Team
-from hero import Hero
-from models import HeroAreaEnum
+from models.attack import Attack
+from models.enums import HeroAreaEnum
+from models.hero import Hero
+from models.team import Team
 
 
 def prepare_teams():

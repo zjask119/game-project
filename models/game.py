@@ -1,6 +1,7 @@
-from models import HeroAreaEnum
-from random import choice
 from operator import attrgetter
+from random import choice
+
+from models.enums import HeroAreaEnum
 
 
 class Game:
@@ -60,7 +61,8 @@ class Game:
     @staticmethod
     def random_victim(heroes):
         if any(hero.area == HeroAreaEnum.FRONT for hero in heroes):
-            front_line = [hero for hero in heroes if hero.area == HeroAreaEnum.FRONT]
+            front_line = [
+                hero for hero in heroes if hero.area == HeroAreaEnum.FRONT]
             victim = choice(front_line)
         else:
             victim = choice(heroes)

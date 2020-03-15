@@ -11,4 +11,3 @@ class Attack:
 
     def __repr__(self):
         return f'{self.name}, power: {self.power}, cost: {self.cost}'
-
