@@ -41,7 +41,7 @@ class Hero:
     def hit_chance(attack, victim_hero):
         chance = 1
         if attack.speed < victim_hero.speed:
-            chance = 1 - (((victim_hero.speed - attack.speed) * 2) / 100)
+            chance = 1 - round((((victim_hero.speed - attack.speed) * 2) / 100), 1)
             chance = min(0.9, chance)
             chance = max(0.1, chance)
         print(f'Success rate: {chance * 100}%')
@@ -49,7 +49,7 @@ class Hero:
 
     @staticmethod
     def damage_calc(attack, victim_hero):
-        damage = attack.power - victim_hero.defence
+        damage = round(attack.power - victim_hero.defence, 1)
         return max(0, damage)
 
     def hp_reduction(self, damage):
@@ -57,7 +57,7 @@ class Hero:
         new_hp = max(0, new_hp)
         if new_hp == 0:
             self.alive = False
-        self.hp = new_hp
+        self.hp = round(new_hp, 1)
 
     def choose_attack(self):
         if self.team.npc:

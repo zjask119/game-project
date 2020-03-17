@@ -6,4 +6,4 @@ class HeroAreaEnum(Enum):
     BACK = 2
 
     def __str__(self):
-        return self.name
+        return self.name.lower()

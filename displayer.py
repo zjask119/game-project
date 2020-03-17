@@ -1,3 +1,4 @@
+from termcolor import cprint
 
 def print_teams(game):
     def _get_line_separator(n=150):
@@ -36,3 +37,7 @@ def print_teams(game):
         msg += _wrap_content(heroes_info, line_separator=False)
     msg += _get_line_separator()
     print(msg)
+
+
+def custom_print_bold(text, colour):
+    return cprint(text, colour, attrs=['bold'])

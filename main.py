@@ -42,8 +42,9 @@ def main():
         human_team.set_energy(energy)
         comp_team.set_energy(energy)
 
-        print(
-            f'-------------------------- Round {game_round} --------------------------\n')
+        get_characters = lambda char, num: ''.join(num * [char])
+        displayer.custom_print_bold(
+            f'{get_characters(">", 30)} Round {game_round} {get_characters("<", 30)}\n'.center(152), 'red')
 
         for striker_hero in game.get_alive_heroes():
             if not striker_hero.alive:
