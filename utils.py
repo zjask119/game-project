@@ -1,7 +1,9 @@
 import sqlite3
 
 from models.attack import Attack
+from models.enums import HeroAreaEnum
 from models.hero import Hero
+from models.team import Team
 
 
 def get_heroes_from_db():
@@ -35,4 +37,51 @@ def get_heroes_from_db():
             move.speed = hero.speed
         hero.add_move(move)
 
-    return heroes.values()
+    return list(heroes.values())
+
+
+def prepare_teams():
+    team1 = Team('Player 1', False)
+    answer = ''
+    while answer not in ['n', 'p']:
+        answer = input('Wanna fight with NPC [n/N] or other player [p/P] ?').lower()
+    team2 = Team(name='Player 2' if answer == 'p' else 'CPU', npc=True if answer == 'n' else False)
+
+    return team1, team2
+
+
+def assign_heroes_to_team(heroes, team):
+    print(f'Assigning heroes for {team.name}: ')
+    while team.num_of_alive_heroes < 4:
+        for x, hero in enumerate(heroes, 1):
+            print(x, hero)
+        try:
+            choice = int(input('Type number of Hero (type 0 if you finished): '))
+        except ValueError:
+            print('Given number is not valid! Try again.')
+            continue
+        else:
+            if choice == 0:
+                break
+        selected_hero = heroes[choice - 1]
+        assign_hero_to_area(selected_hero)
+        team.add_hero(selected_hero)
+        heroes.pop(choice - 1)
+    print(f'{team.name} is completed.\n')
+
+
+def assign_hero_to_area(hero):
+    available_areas = [f'{x.value} -> {x.name} area'
+                       for x in HeroAreaEnum.__members__.values()]
+    print('Assign one of the listed areas to the heroes:\n',
+          '\n'.join(available_areas))
+
+    while True:
+        try:
+            area_num = int(input(f'Assign {hero.name} to one of the listed areas: '))
+            area = HeroAreaEnum(area_num)
+        except ValueError:
+            print('Number is not valid! Try again')
+        else:
+            hero.area = area
+            break

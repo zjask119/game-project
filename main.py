@@ -1,48 +1,36 @@
 import displayer
-from models.enums import HeroAreaEnum
 from models.game import Game
-from utils import get_heroes_from_db
+from utils import assign_heroes_to_team, get_heroes_from_db, prepare_teams
 
 
 def main():
-    
-    game = Game(teams=[human_team, comp_team])
 
-    available_areas = [f'{x.value} -> {x.name} area'
-                       for x in HeroAreaEnum.__members__.values()]
-    print('Assign one of the listed areas to the heroes:\n',
-          '\n'.join(available_areas))
+    heroes = get_heroes_from_db()
+    team1, team2 = prepare_teams()
+    assign_heroes_to_team(heroes, team1)
+    assign_heroes_to_team(heroes, team2)
 
-    for hero in human_team.get_all_heroes():
-        while True:
-            try:
-                area_num = int(
-                    input(f'Choose area (number) for hero {hero.name}: '))
-                area = HeroAreaEnum(area_num)
-            except ValueError:
-                print('Number is not valid! Try again')
-            else:
-                hero.area = area
-                break
+    game = Game(teams=[team1, team2])
 
     print(f'\nThe fight between:\n'
-          f'{human_team}\n'
+          f'{team1}\n'
           f'and\n'
-          f'{comp_team}\n'
+          f'{team2}\n'
           f'has begun...')
 
     game_round = 0
 
-    while human_team.is_anybody_alive() and comp_team.is_anybody_alive():
+    while team1.is_anybody_alive() and team2.is_anybody_alive():
 
-        comp_team.energy = 0
+        team2.energy = 0
         game_round += 1
 
         energy = 2 * game_round
-        human_team.set_energy(energy)
-        comp_team.set_energy(energy)
+        team1.set_energy(energy)
 
-        get_characters = lambda char, num: ''.join(num * [char])
+        team2.set_energy(energy)
+
+        def get_characters(char, num): return ''.join(num * [char])
         displayer.custom_print_bold(
             f'{get_characters(">", 30)} Round {game_round} {get_characters("<", 30)}\n'.center(152), 'red')
 
@@ -52,26 +40,26 @@ def main():
 
             displayer.print_teams(game)
             print(
-                f'{striker_hero.name} is attacking. Energy status: {striker_hero.team.energy}')
+                f'{striker_hero.team.name} - {striker_hero.name} is attacking. Energy status: {striker_hero.team.energy}')
 
-            if striker_hero.team.npc:
-                enemy_team = human_team
+            if striker_hero.team == team1:
+                enemy_team = team2
             else:
-                enemy_team = comp_team
+                enemy_team = team1
 
             victim_hero = game.choose_victim(enemy_team)
             striker_hero.attack_hero(victim_hero)
 
-            if not human_team.is_anybody_alive():
-                print('You lost...')
+            if not team1.is_anybody_alive():
+                print(f'{team2.name} won!')
                 break
 
-            if not comp_team.is_anybody_alive():
-                print('You won!')
+            if not team2.is_anybody_alive():
+                print(f'{team1.name} won!')
                 break
 
-        human_team.reduce_heroes_attributes()
-        comp_team.reduce_heroes_attributes()
+        team1.reduce_heroes_attributes()
+        team2.reduce_heroes_attributes()
 
 
 if __name__ == "__main__":

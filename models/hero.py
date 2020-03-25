@@ -19,14 +19,14 @@ class Hero:
         self.initial_defence = defence
         self.initial_speed = speed
 
-        self.moves = set()
+        self.moves = []
         self.area = area
         self.alive = True
         self.team = None
 
     def add_move(self, move):
         assert isinstance(move, Attack)
-        self.moves.add(move)
+        self.moves.append(move)
 
     @property
     def reduction_factor(self):
