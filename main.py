@@ -1,11 +1,11 @@
 import displayer
 from models.enums import HeroAreaEnum
 from models.game import Game
-from utils import prepare_teams
+from utils import get_heroes_from_db
 
 
 def main():
-    human_team, comp_team = prepare_teams()
+    
     game = Game(teams=[human_team, comp_team])
 
     available_areas = [f'{x.value} -> {x.name} area'

@@ -1,6 +1,7 @@
 import math
 import random
 
+from models.attack import Attack
 from models.enums import HeroAreaEnum
 from models.game import Game
 
@@ -8,10 +9,8 @@ from models.game import Game
 class Hero:
 
     def __init__(self, name: str, hp: float, defence: float,
-                 speed: float, moves: list,
-                 area: HeroAreaEnum = HeroAreaEnum.BACK):
+                 speed: float, area: HeroAreaEnum = HeroAreaEnum.BACK):
         self.name = name
-
         self.hp = hp
         self.defence = defence
         self.speed = speed
@@ -20,10 +19,14 @@ class Hero:
         self.initial_defence = defence
         self.initial_speed = speed
 
-        self.moves = moves
+        self.moves = set()
         self.area = area
         self.alive = True
         self.team = None
+
+    def add_move(self, move):
+        assert isinstance(move, Attack)
+        self.moves.add(move)
 
     @property
     def reduction_factor(self):

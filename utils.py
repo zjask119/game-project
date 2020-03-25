@@ -1,75 +1,38 @@
+import sqlite3
+
 from models.attack import Attack
-from models.enums import HeroAreaEnum
 from models.hero import Hero
-from models.team import Team
 
 
-def prepare_teams():
-    heroes_list_team_1 = [
-        Hero('Batman', 200, 40, 76,
-             [
-                 Attack('punch', 51, 76),
-                 Attack('kick', 57, 72, 1),
-                 Attack('combo', 62, 75, 2),
-             ],
-             ),
-        Hero('Superman', 210, 40, 85,
-             [
-                 Attack('punch', 78, 80),
-                 Attack('kick', 82, 82, 1),
-                 Attack('combo', 99, 85, 2),
-             ],
-             ),
-        Hero('Green Lantern', 180, 30, 78,
-             [
-                 Attack('punch', 80, 73),
-                 Attack('kick', 84, 79, 1),
-                 Attack('combo', 300, 85, 2),
-             ],
-             ),
-        Hero('Wonder Woman', 180, 30, 72,
-             [
-                 Attack('punch', 71, 76),
-                 Attack('kick', 74, 77, 1),
-                 Attack('combo', 78, 79, 2),
-             ],
-             ),
-    ]
+def get_heroes_from_db():
+    conn = sqlite3.connect('base.db')
+    cursor = conn.cursor()
+    query = 'select id, name, hp, defence, speed from hero;'
+    cursor.execute(query)
+    db_heroes = cursor.fetchall()
 
-    heroes_list_team_2 = [
-        Hero('Spider-Man', 190, 40, 82,
-             [
-                 Attack('punch', 59, 80),
-                 Attack('kick', 65, 82, 1),
-                 Attack('combo', 69, 85, 2),
-             ],
-             HeroAreaEnum.BACK
-             ),
-        Hero('Thor', 180, 30, 83,
-             [
-                 Attack('punch', 53, 80),
-                 Attack('kick', 57, 83, 1),
-                 Attack('combo', 60, 84, 2),
-             ],
-             HeroAreaEnum.BACK
-             ),
-        Hero('Iron Man', 190, 40, 71,
-             [
-                 Attack('punch', 51, 70),
-                 Attack('kick', 57, 72, 1),
-                 Attack('combo', 63, 77, 2),
-             ],
-             HeroAreaEnum.FRONT
-             ),
-        Hero('Hulk', 190, 40, 69,
-             [
-                 Attack('punch', 65, 77),
-                 Attack('kick', 70, 83, 1),
-                 Attack('combo', 74, 90, 2),
-             ],
-             HeroAreaEnum.BACK
-             ),
-    ]
+    query = 'select name, power, speed, cost, constant, user from move;'
+    cursor.execute(query)
+    db_moves = cursor.fetchall()
 
-    return (Team(name='Best team ever', npc=False, heroes=heroes_list_team_1),
-            Team(name='Bad guys', npc=True, heroes=heroes_list_team_2))
+    heroes = {}
+    moves = []
+
+    for db_hero in db_heroes:
+        hero_id, name, hp, defence, speed = db_hero
+        hero = Hero(name, hp, defence, speed)
+        heroes[hero_id] = hero
+
+    for db_move in db_moves:
+        name, power, speed, cost, constant, user = db_move
+        cost = cost if cost else 0
+        move = Attack(name, power, speed, cost)
+        moves.append((user, move))
+
+    for hero_id, move in moves:
+        hero = heroes[hero_id]
+        if move.speed is None:
+            move.speed = hero.speed
+        hero.add_move(move)
+
+    return heroes.values()
