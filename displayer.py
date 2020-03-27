@@ -1,5 +1,6 @@
 from termcolor import cprint
 
+
 def print_teams(game):
     def _get_line_separator(n=150):
         return '+'.ljust(n, '-') + '+\n'

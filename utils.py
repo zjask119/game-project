@@ -1,75 +1,87 @@
+import sqlite3
+
 from models.attack import Attack
 from models.enums import HeroAreaEnum
 from models.hero import Hero
 from models.team import Team
 
 
+def get_heroes_from_db():
+    conn = sqlite3.connect('base.db')
+    cursor = conn.cursor()
+    query = 'select id, name, hp, defence, speed from hero;'
+    cursor.execute(query)
+    db_heroes = cursor.fetchall()
+
+    query = 'select name, power, speed, cost, constant, user from move;'
+    cursor.execute(query)
+    db_moves = cursor.fetchall()
+
+    heroes = {}
+    moves = []
+
+    for db_hero in db_heroes:
+        hero_id, name, hp, defence, speed = db_hero
+        hero = Hero(name, hp, defence, speed)
+        heroes[hero_id] = hero
+
+    for db_move in db_moves:
+        name, power, speed, cost, constant, user = db_move
+        cost = cost if cost else 0
+        move = Attack(name, power, speed, cost)
+        moves.append((user, move))
+
+    for hero_id, move in moves:
+        hero = heroes[hero_id]
+        if move.speed is None:
+            move.speed = hero.speed
+        hero.add_move(move)
+
+    return list(heroes.values())
+
+
 def prepare_teams():
-    heroes_list_team_1 = [
-        Hero('Batman', 200, 40, 76,
-             [
-                 Attack('punch', 51, 76),
-                 Attack('kick', 57, 72, 1),
-                 Attack('combo', 62, 75, 2),
-             ],
-             ),
-        Hero('Superman', 210, 40, 85,
-             [
-                 Attack('punch', 78, 80),
-                 Attack('kick', 82, 82, 1),
-                 Attack('combo', 99, 85, 2),
-             ],
-             ),
-        Hero('Green Lantern', 180, 30, 78,
-             [
-                 Attack('punch', 80, 73),
-                 Attack('kick', 84, 79, 1),
-                 Attack('combo', 300, 85, 2),
-             ],
-             ),
-        Hero('Wonder Woman', 180, 30, 72,
-             [
-                 Attack('punch', 71, 76),
-                 Attack('kick', 74, 77, 1),
-                 Attack('combo', 78, 79, 2),
-             ],
-             ),
-    ]
+    team1 = Team('Player 1', False)
+    answer = ''
+    while answer not in ['n', 'p']:
+        answer = input('Wanna fight with NPC [n/N] or other player [p/P] ?').lower()
+    team2 = Team(name='Player 2' if answer == 'p' else 'CPU', npc=True if answer == 'n' else False)
 
-    heroes_list_team_2 = [
-        Hero('Spider-Man', 190, 40, 82,
-             [
-                 Attack('punch', 59, 80),
-                 Attack('kick', 65, 82, 1),
-                 Attack('combo', 69, 85, 2),
-             ],
-             HeroAreaEnum.BACK
-             ),
-        Hero('Thor', 180, 30, 83,
-             [
-                 Attack('punch', 53, 80),
-                 Attack('kick', 57, 83, 1),
-                 Attack('combo', 60, 84, 2),
-             ],
-             HeroAreaEnum.BACK
-             ),
-        Hero('Iron Man', 190, 40, 71,
-             [
-                 Attack('punch', 51, 70),
-                 Attack('kick', 57, 72, 1),
-                 Attack('combo', 63, 77, 2),
-             ],
-             HeroAreaEnum.FRONT
-             ),
-        Hero('Hulk', 190, 40, 69,
-             [
-                 Attack('punch', 65, 77),
-                 Attack('kick', 70, 83, 1),
-                 Attack('combo', 74, 90, 2),
-             ],
-             HeroAreaEnum.BACK
-             ),
-    ]
+    return team1, team2
 
-    return (Team(name='Best team ever', npc=False, heroes=heroes_list_team_1),
-            Team(name='Bad guys', npc=True, heroes=heroes_list_team_2))
+
+def assign_heroes_to_team(heroes, team):
+    print(f'Assigning heroes for {team.name}: ')
+    while team.num_of_alive_heroes < 4:
+        for x, hero in enumerate(heroes, 1):
+            print(x, hero)
+        try:
+            choice = int(input('Type number of Hero (type 0 if you finished): '))
+        except ValueError:
+            print('Given number is not valid! Try again.')
+            continue
+        else:
+            if choice == 0:
+                break
+        selected_hero = heroes[choice - 1]
+        assign_hero_to_area(selected_hero)
+        team.add_hero(selected_hero)
+        heroes.pop(choice - 1)
+    print(f'{team.name} is completed.\n')
+
+
+def assign_hero_to_area(hero):
+    available_areas = [f'{x.value} -> {x.name} area'
+                       for x in HeroAreaEnum.__members__.values()]
+    print('Assign one of the listed areas to the heroes:\n',
+          '\n'.join(available_areas))
+
+    while True:
+        try:
+            area_num = int(input(f'Assign {hero.name} to one of the listed areas: '))
+            area = HeroAreaEnum(area_num)
+        except ValueError:
+            print('Number is not valid! Try again')
+        else:
+            hero.area = area
+            break

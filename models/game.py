@@ -42,8 +42,8 @@ class Game:
     def choose_victim(enemy_team):
         heroes = enemy_team.get_alive_heroes()
 
-        if not enemy_team.npc:
-            return Game.random_victim(heroes)
+        # if not enemy_team.npc:
+        #     return Game.random_victim(heroes)
 
         print('Choose opponent from enemy team to attack.\n')
         for i, hero in enumerate(heroes, 1):
