@@ -10,7 +10,7 @@ def main():
     assign_heroes_to_team(heroes, team1)
     assign_heroes_to_team(heroes, team2)
 
-    game = Game(teams=[team1, team2])
+    game = Game(team1, team2)
 
     print(f'\nThe fight between:\n'
           f'{team1}\n'
@@ -21,34 +21,30 @@ def main():
     game_round = 0
 
     while team1.is_anybody_alive() and team2.is_anybody_alive():
-
-        team2.energy = 0
         game_round += 1
 
         energy = 2 * game_round
         team1.set_energy(energy)
-
         team2.set_energy(energy)
 
         def get_characters(char, num): return ''.join(num * [char])
-        displayer.custom_print_bold(
-            f'{get_characters(">", 30)} Round {game_round} {get_characters("<", 30)}\n'.center(152), 'red')
+        displayer.print_error(
+            f'{get_characters(">", 30)} Round {game_round} {get_characters("<", 30)}\n'.center(152))
 
-        for striker_hero in game.get_alive_heroes():
-            if not striker_hero.alive:
+        for attacking_hero in game.get_alive_heroes():
+            if not attacking_hero.alive:
                 continue
 
             displayer.print_teams(game)
             print(
-                f'{striker_hero.team.name} - {striker_hero.name} is attacking. Energy status: {striker_hero.team.energy}')
+                f'{attacking_hero.team.name} - {attacking_hero.name} is attacking. '
+                f'Energy status: {attacking_hero.team.energy}')
 
-            if striker_hero.team == team1:
-                enemy_team = team2
-            else:
-                enemy_team = team1
+            attacking_team = attacking_hero.team
+            enemy_team = team2 if attacking_team == team1 else team1
 
-            victim_hero = game.choose_victim(enemy_team)
-            striker_hero.attack_hero(victim_hero)
+            victim_hero = game.choose_victim(attacking_team, enemy_team)
+            attacking_hero.attack_hero(victim_hero)
 
             if not team1.is_anybody_alive():
                 print(f'{team2.name} won!')

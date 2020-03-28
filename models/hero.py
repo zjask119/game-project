@@ -92,4 +92,5 @@ class Hero:
         victim_hero.hp_reduction(damage)
 
     def __repr__(self):
-        return f'{self.name} with Hp: {self.hp}, def: {self.defence}, speed: {self.speed}, area: {self.area}'
+        return (f'{self.name} with Hp: {self.hp}, def: {self.defence}, '
+                f'speed: {self.speed}, area: {self.area}')

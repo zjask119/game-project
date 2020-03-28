@@ -1,3 +1,5 @@
+from functools import partial
+
 from termcolor import cprint
 
 
@@ -40,5 +42,4 @@ def print_teams(game):
     print(msg)
 
 
-def custom_print_bold(text, colour):
-    return cprint(text, colour, attrs=['bold'])
+print_error = partial(cprint, color='red', attrs=['bold'])

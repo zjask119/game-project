@@ -1,5 +1,6 @@
 import sqlite3
 
+from displayer import print_error
 from models.attack import Attack
 from models.enums import HeroAreaEnum
 from models.hero import Hero
@@ -44,8 +45,9 @@ def prepare_teams():
     team1 = Team('Player 1', False)
     answer = ''
     while answer not in ['n', 'p']:
-        answer = input('Wanna fight with NPC [n/N] or other player [p/P] ?').lower()
-    team2 = Team(name='Player 2' if answer == 'p' else 'CPU', npc=True if answer == 'n' else False)
+        answer = input('Wanna fight with NPC [n/N] or other player [p/P] ?').lower().strip()
+    team2 = Team(name='Player 2' if answer == 'p' else 'CPU',
+                 npc=False if answer == 'p' else True)
 
     return team1, team2
 
@@ -57,13 +59,14 @@ def assign_heroes_to_team(heroes, team):
             print(x, hero)
         try:
             choice = int(input('Type number of Hero (type 0 if you finished): '))
-        except ValueError:
-            print('Given number is not valid! Try again.')
+            selected_hero = heroes[choice - 1]
+        except (ValueError, IndexError):
+            print_error('Given number is not valid! Try again.')
             continue
         else:
             if choice == 0:
                 break
-        selected_hero = heroes[choice - 1]
+
         assign_hero_to_area(selected_hero)
         team.add_hero(selected_hero)
         heroes.pop(choice - 1)
@@ -81,7 +84,7 @@ def assign_hero_to_area(hero):
             area_num = int(input(f'Assign {hero.name} to one of the listed areas: '))
             area = HeroAreaEnum(area_num)
         except ValueError:
-            print('Number is not valid! Try again')
+            print_error('Number is not valid! Try again')
         else:
             hero.area = area
             break
