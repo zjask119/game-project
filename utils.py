@@ -29,7 +29,7 @@ def get_heroes_from_db():
     for db_move in db_moves:
         name, power, speed, cost, constant, user = db_move
         cost = cost if cost else 0
-        move = Attack(name, power, speed, cost)
+        move = Attack(name, power, speed, cost, reduce=not constant)
         moves.append((user, move))
 
     for hero_id, move in moves:
