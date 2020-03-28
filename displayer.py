@@ -43,3 +43,25 @@ def print_teams(game):
 
 
 print_error = partial(cprint, color='red', attrs=['bold'])
+
+def data_for_table(prop, data):
+    data = list(zip(prop, data))
+    content = [''.join(str(x[1]).center(x[0])) for x in data]
+    return content
+
+def table_core():
+    prop = [4, 30, 11, 11, 11, 11, 6]
+    chars = [''.join(x * ['-']) for x in prop]
+    line = '+' + '+'.join(chars) + '+'
+    return prop, line
+
+def move_table_header():
+    prop, line = table_core()
+    headers = data_for_table(prop, ['No', 'NAME', 'POWER', 'SPEED', 'LOSS', 'RANGE', 'COST'])
+    print(f'{line}\n{"|" + "|".join(headers) + "|"}\n{line}')
+
+def table_row(i, attack):
+    prop, line = table_core()
+    move = data_for_table(prop, [i,attack.name, attack.power, attack.speed,
+                                 attack.sacrifice, attack.range, attack.cost])
+    print("|" + "|".join(move) + "|")

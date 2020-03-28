@@ -4,6 +4,7 @@ import random
 from models.attack import Attack
 from models.enums import HeroAreaEnum
 from models.game import Game
+from displayer import move_table_header, table_row, table_core
 
 
 class Hero:
@@ -69,8 +70,11 @@ class Hero:
             return random.choice(self.moves)
         while True:
             print('Choose one of possible moves.\n')
+            move_table_header()
             for i, attack in enumerate(self.moves, 1):
-                print(f'{i}. {attack}')
+                table_row(i, attack)
+            _, line = table_core()
+            print(line)
             num = Game.ask_number(self.moves) - 1
             move = self.moves[num]
 
