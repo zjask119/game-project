@@ -37,6 +37,8 @@ class Hero:
         self.speed = round(self.initial_speed * self.reduction_factor, 1)
         self.defence = round(self.initial_defence * self.reduction_factor, 1)
         for move in self.moves:
+            if not move.reduce:
+                continue
             move.power = round(move.power * self.reduction_factor, 1)
             move.speed = round(move.speed * self.reduction_factor, 1)
 
@@ -92,4 +94,5 @@ class Hero:
         victim_hero.hp_reduction(damage)
 
     def __repr__(self):
-        return f'{self.name} with Hp: {self.hp}, def: {self.defence}, speed: {self.speed}, area: {self.area}'
+        return (f'{self.name} with Hp: {self.hp}, def: {self.defence}, '
+                f'speed: {self.speed}, area: {self.area}')

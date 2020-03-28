@@ -1,19 +1,17 @@
 from operator import attrgetter
 from random import choice
 
+from displayer import print_error
 from models.enums import HeroAreaEnum
 
 
 class Game:
 
-    def __init__(self, teams=None):
-        self.teams = []
-        if teams and isinstance(teams, list):
-            for team in teams:
-                self.add_team(team)
-
-    def add_team(self, team):
-        self.teams.append(team)
+    def __init__(self, team1, team2):
+        from models.team import Team
+        assert isinstance(team1, Team)
+        assert isinstance(team2, Team)
+        self.teams = [team1, team2]
 
     def get_all_heroes(self, sorted_by='speed'):
         heroes = []
@@ -33,17 +31,17 @@ class Game:
                 print(f'\nChoose between 1 - {len(values)}.')
                 index = int(input('Your Choice is: '))
             except ValueError:
-                print('Given number is not valid! Try again.')
+                print_error('Given number is not valid! Try again.')
                 continue
             if index in range(1, len(values) + 1):
                 return index
 
     @staticmethod
-    def choose_victim(enemy_team):
+    def choose_victim(attacking_team, enemy_team):
         heroes = enemy_team.get_alive_heroes()
 
-        # if not enemy_team.npc:
-        #     return Game.random_victim(heroes)
+        if attacking_team.npc:
+            return Game.random_victim(heroes)
 
         print('Choose opponent from enemy team to attack.\n')
         for i, hero in enumerate(heroes, 1):
@@ -60,9 +58,8 @@ class Game:
 
     @staticmethod
     def random_victim(heroes):
-        if any(hero.area == HeroAreaEnum.FRONT for hero in heroes):
-            front_line = [
-                hero for hero in heroes if hero.area == HeroAreaEnum.FRONT]
+        front_line = [hero for hero in heroes if hero.area == HeroAreaEnum.FRONT]
+        if front_line:
             victim = choice(front_line)
         else:
             victim = choice(heroes)
