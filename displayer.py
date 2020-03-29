@@ -44,24 +44,58 @@ def print_teams(game):
 
 print_error = partial(cprint, color='red', attrs=['bold'])
 
-def data_for_table(prop, data):
-    data = list(zip(prop, data))
+
+def get_row_str(proportions, data):
+    data = list(zip(proportions, data))
     content = [''.join(str(x[1]).center(x[0])) for x in data]
-    return content
+    return "|" + "|".join(content) + "|"
 
-def table_core():
-    prop = [4, 30, 11, 11, 11, 11, 6]
-    chars = [''.join(x * ['-']) for x in prop]
+
+def get_line_str(proportions):
+    chars = [''.join(p * ['-']) for p in proportions]
     line = '+' + '+'.join(chars) + '+'
-    return prop, line
+    return line
 
-def move_table_header():
-    prop, line = table_core()
-    headers = data_for_table(prop, ['No', 'NAME', 'POWER', 'SPEED', 'LOSS', 'RANGE', 'COST'])
-    print(f'{line}\n{"|" + "|".join(headers) + "|"}\n{line}')
 
-def table_row(i, attack):
-    prop, line = table_core()
-    move = data_for_table(prop, [i,attack.name, attack.power, attack.speed,
-                                 attack.sacrifice, attack.range, attack.cost])
-    print("|" + "|".join(move) + "|")
+def print_table(data, fields, proportions, with_indices=True):
+    if data:
+        for attr in fields:
+            assert hasattr(data[0], attr)
+
+    new_data = []
+    for idx, obj in enumerate(data, 1):
+        row = [getattr(obj, field) for field in fields]
+        if with_indices:
+            row.insert(0, idx)
+        new_data.append(row)
+
+    if with_indices:
+        fields.insert(0, 'No')
+
+    assert len(fields) == len(proportions)
+
+    msg = get_line_str(proportions) + '\n'
+    msg += get_row_str(proportions, fields) + '\n'
+    msg += get_line_str(proportions) + '\n'
+    for row in new_data:
+        msg += get_row_str(proportions, row) + '\n'
+    msg += get_line_str(proportions) + '\n'
+    print(msg)
+
+
+def print_moves(moves, with_indices=True):
+    proportions = [4, 30, 11, 11, 11, 11, 6]
+    fields = ['name', 'power', 'speed', 'sacrifice', 'range', 'cost']
+    print_table(moves, fields, proportions, with_indices)
+
+
+def print_heroes(heroes, with_indices=True):
+    proportions = [4, 30, 11, 11, 11, 11]
+    fields = ['name', 'hp', 'defence', 'speed', 'area']
+    print_table(heroes, fields, proportions, with_indices)
+
+
+def print_hero_areas(areas):
+    proportions = [7, 10]
+    fields = ['value', 'name']
+    print_table(areas, fields, proportions, with_indices=False)
