@@ -1,6 +1,6 @@
 import sqlite3
 
-from displayer import print_error
+from displayer import print_error, print_hero_areas, print_heroes
 from models.attack import Attack
 from models.enums import HeroAreaEnum
 from models.hero import Hero
@@ -55,8 +55,7 @@ def prepare_teams():
 def assign_heroes_to_team(heroes, team):
     while True:
         print(f'Assigning heroes to {team.name}: ')
-        for x, hero in enumerate(heroes, 1):
-            print(x, hero)
+        print_heroes(heroes)
 
         print('Enter a list of heroes whitespace separated')
         choices = set(map(int, input().split()))
@@ -79,14 +78,12 @@ def assign_heroes_to_team(heroes, team):
 
 
 def assign_hero_to_area(hero):
-    available_areas = [f'{x.value} -> {x.name} area'
-                       for x in HeroAreaEnum.__members__.values()]
-    print('Assign one of the listed areas to the heroes:\n',
-          '\n'.join(available_areas))
+    print(f'Assign {hero.name} to one of the listed areas: ')
+    print_hero_areas([x for x in HeroAreaEnum.__members__.values()])
 
     while True:
         try:
-            area_num = int(input(f'Assign {hero.name} to one of the listed areas: '))
+            area_num = int(input('Area: '))
             area = HeroAreaEnum(area_num)
         except ValueError:
             print_error('Number is not valid! Try again')

@@ -1,6 +1,7 @@
 import math
 import random
 
+from displayer import print_moves
 from models.attack import Attack
 from models.enums import HeroAreaEnum
 from models.game import Game
@@ -69,8 +70,7 @@ class Hero:
             return random.choice(self.moves)
         while True:
             print('Choose one of possible moves.\n')
-            for i, attack in enumerate(self.moves, 1):
-                print(f'{i}. {attack}')
+            print_moves(self.moves)
             num = Game.ask_number(self.moves) - 1
             move = self.moves[num]
 
