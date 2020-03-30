@@ -32,7 +32,7 @@ class Hero:
     @property
     def reduction_factor(self):
         factor = self.hp / self.initial_hp
-        return round(math.sqrt(factor), 1)
+        return round(math.sqrt(factor), 2)
 
     def reduce_attributes(self):
         self.speed = round(self.initial_speed * self.reduction_factor, 1)
@@ -40,18 +40,27 @@ class Hero:
         for move in self.moves:
             if not move.reduce:
                 continue
-            move.power = round(move.power * self.reduction_factor, 1)
-            move.speed = round(move.speed * self.reduction_factor, 1)
+            move.power = round(move.initial_power * self.reduction_factor, 1)
+            move.speed = round(move.initial_speed * self.reduction_factor, 1)
 
     @staticmethod
     def hit_chance(attack, victim_hero):
-        chance = 1
-        if attack.speed < victim_hero.speed:
-            chance = 1 - round((((victim_hero.speed - attack.speed) * 2) / 100), 1)
-            chance = min(0.9, chance)
-            chance = max(0.1, chance)
-        print(f'Success rate: {chance * 100}%')
-        return round(chance, 2)
+        div = attack.speed / victim_hero.speed
+        if div <= 0.5:
+            chance = 0
+        elif 0.5 < div <= 1:
+            chance = math.log10(div + 0.5) / math.log10(2.25)
+        elif 1 < div < 2:
+            chance = math.log10(div + 0.62) / math.log10(2.62)
+        else:
+            chance = 1
+
+        chance = max(0.05, chance)
+        chance = min(0.95, chance)
+        chance = round(chance, 2)
+
+        print(f'Success rate: {round(chance * 100, 1)}%')
+        return chance
 
     @staticmethod
     def damage_calc(attack, victim_hero):
@@ -67,7 +76,14 @@ class Hero:
 
     def choose_attack(self):
         if self.team.npc:
-            return random.choice(self.moves)
+            # TODO filter only front heroes
+            while True:
+                move = random.choice(self.moves)
+                if move.cost <= self.team.energy:
+                    self.team.energy -= move.cost
+                    return move
+                else:
+                    continue
         while True:
             print('Choose one of possible moves.\n')
             print_moves(self.moves)

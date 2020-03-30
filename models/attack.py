@@ -1,10 +1,12 @@
 
 class Attack:
 
-    def __init__(self, name, power, speed, cost=0, reduce=True, _range='target', sacrifice=0):
+    def __init__(self, name, power, speed, cost, sacrifice, reduce, _range='target'):
         self.name = name
         self.power = power
         self.speed = speed
+        self.initial_power = power
+        self.initial_speed = speed
         self.cost = cost
         self.reduce = reduce
         self.range = _range
