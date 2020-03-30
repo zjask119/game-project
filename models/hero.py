@@ -48,10 +48,8 @@ class Hero:
         div = attack.speed / victim_hero.speed
         if div <= 0.5:
             chance = 0
-        elif 0.5 < div <= 1:
-            chance = math.log10(div + 0.5) / math.log10(2.25)
-        elif 1 < div < 2:
-            chance = math.log10(div + 0.62) / math.log10(2.62)
+        elif 0.5 < div < 2:
+            chance = 0.5 * math.log(2 * div, 2)
         else:
             chance = 1
 
@@ -63,8 +61,8 @@ class Hero:
         return chance
 
     @staticmethod
-    def damage_calc(attack, victim_hero):
-        damage = round(attack.power - victim_hero.defence, 1)
+    def calculate_damage(attack, victim_hero, damage_multiplier=1):
+        damage = round(damage_multiplier * attack.power - victim_hero.defence, 1)
         return max(0, damage)
 
     def hp_reduction(self, damage):
@@ -76,38 +74,49 @@ class Hero:
 
     def choose_attack(self):
         if self.team.npc:
-            # TODO filter only front heroes
-            while True:
-                move = random.choice(self.moves)
-                if move.cost <= self.team.energy:
-                    self.team.energy -= move.cost
-                    return move
-                else:
-                    continue
-        while True:
-            print('Choose one of possible moves.\n')
-            print_moves(self.moves)
-            num = Game.ask_number(self.moves) - 1
-            move = self.moves[num]
+            affordable_moves = [move for move in self.moves
+                                if move.cost <= self.team.energy]
+            move = random.choice(affordable_moves)
+            return move
 
-            if move.cost <= self.team.energy:
-                self.team.energy -= move.cost
+        else:
+            while True:
+                print('Choose one of possible moves.\n')
+                print_moves(self.moves)
+                num = Game.ask_number(self.moves) - 1
+                move = self.moves[num]
+                if move.cost > self.team.energy:
+                    print("LOW ENERGY! - Choose another attack")
+                    continue
                 return move
-            else:
-                print("LOW ENERGY! - Choose another attack")
-                continue
 
     def attack_hero(self, victim_hero):
         attack = self.choose_attack()
-        success = random.random() < self.hit_chance(attack, victim_hero)
-        if not success:
-            print('You missed, looser')
-            return
 
-        damage = self.damage_calc(attack, victim_hero)
-        print(
-            f'{self.name} attacked {victim_hero.name} and dealt {damage} damage points.\n')
-        victim_hero.hp_reduction(damage)
+        self.team.energy -= attack.cost
+        if attack.sacrifice:
+            self.hp_reduction(attack.sacrifice)
+
+        if attack.range == 'area':
+            victims = [hero for hero in victim_hero.team.get_alive_heroes()
+                       if hero.area == victim_hero.area]
+
+        else:
+            victims = [victim_hero]
+
+        print(f'{self.name} is using {attack.range} attack {attack.name}.')
+        for victim in victims:
+            success = random.random() < self.hit_chance(attack, victim)
+            print(f'{self.name} is attacking {victim.name}.')
+            if success:
+                damage_multiplier = 1
+                if victim != victim_hero:
+                    damage_multiplier = 0.75
+                damage = self.calculate_damage(attack, victim, damage_multiplier)
+                print(f'You hit and dealt {damage} damage points!\n')
+                victim.hp_reduction(damage)
+            else:
+                print('You missed!\n')
 
     def __repr__(self):
         return (f'{self.name} with Hp: {self.hp}, def: {self.defence}, '
