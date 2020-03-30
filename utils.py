@@ -14,7 +14,7 @@ def get_heroes_from_db():
     cursor.execute(query)
     db_heroes = cursor.fetchall()
 
-    query = 'select name, power, speed, cost, constant, loss, user from move;'
+    query = 'select name, power, speed, cost, constant, loss, range, user from move;'
     cursor.execute(query)
     db_moves = cursor.fetchall()
 
@@ -27,10 +27,12 @@ def get_heroes_from_db():
         heroes[hero_id] = hero
 
     for db_move in db_moves:
-        name, power, speed, cost, constant, sacrifice, user = db_move
+        name, power, speed, cost, constant, sacrifice, range_, user = db_move
+        assert range_ in ('target', 'area')
         cost = cost if cost else 0
         sacrifice = sacrifice if sacrifice else 0
-        move = Attack(name, power, speed, cost, sacrifice, not constant)
+
+        move = Attack(name, power, speed, cost, sacrifice, not constant, range_)
         moves.append((user, move))
 
     for hero_id, move in moves:
