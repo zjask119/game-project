@@ -48,10 +48,8 @@ class Hero:
         div = attack.speed / victim_hero.speed
         if div <= 0.5:
             chance = 0
-        elif 0.5 < div <= 1:
-            chance = math.log10(div + 0.5) / math.log10(2.25)
-        elif 1 < div < 2:
-            chance = math.log10(div + 0.62) / math.log10(2.62)
+        elif 0.5 < div < 2:
+            chance = 0.5 * math.log(2 * div, 2)
         else:
             chance = 1
 
@@ -76,26 +74,29 @@ class Hero:
 
     def choose_attack(self):
         if self.team.npc:
-            # TODO filter only front heroes
+            affordable_moves = [move for move in self.moves
+                                if move.cost <= self.team.energy]
+            move = random.choice(affordable_moves)
+            self.team.energy -= move.cost
+            if move.sacrifice:
+                self.hp_reduction(move.sacrifice)
+            return move
+
+        else:
             while True:
-                move = random.choice(self.moves)
+                print('Choose one of possible moves.\n')
+                print_moves(self.moves)
+                num = Game.ask_number(self.moves) - 1
+                move = self.moves[num]
+
                 if move.cost <= self.team.energy:
                     self.team.energy -= move.cost
+                    if move.sacrifice:
+                        self.hp_reduction(move.sacrifice)
                     return move
                 else:
+                    print("LOW ENERGY! - Choose another attack")
                     continue
-        while True:
-            print('Choose one of possible moves.\n')
-            print_moves(self.moves)
-            num = Game.ask_number(self.moves) - 1
-            move = self.moves[num]
-
-            if move.cost <= self.team.energy:
-                self.team.energy -= move.cost
-                return move
-            else:
-                print("LOW ENERGY! - Choose another attack")
-                continue
 
     def attack_hero(self, victim_hero):
         attack = self.choose_attack()
