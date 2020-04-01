@@ -10,11 +10,23 @@ from models.team import Team
 def get_heroes_from_db():
     conn = sqlite3.connect('base.db')
     cursor = conn.cursor()
-    query = 'select id, name, hp, defence, speed from hero;'
+    query = 'select id, name, hp, defence, speed, mind from hero;'
     cursor.execute(query)
     db_heroes = cursor.fetchall()
 
-    query = 'select name, power, speed, cost, constant, loss, range, user from move;'
+    query = '''
+        select 
+             name
+            ,power
+            ,speed
+            ,cost
+            ,type
+            ,sacrifice
+            ,range
+            ,user 
+        from move
+        where type in ('attack', 'constant')
+    '''
     cursor.execute(query)
     db_moves = cursor.fetchall()
 
@@ -22,17 +34,15 @@ def get_heroes_from_db():
     moves = []
 
     for db_hero in db_heroes:
-        hero_id, name, hp, defence, speed = db_hero
-        hero = Hero(name, hp, defence, speed)
+        hero_id, name, hp, defence, speed, mind = db_hero
+        hero = Hero(name, hp, defence, speed, mind)
         heroes[hero_id] = hero
 
     for db_move in db_moves:
-        name, power, speed, cost, constant, sacrifice, range_, user = db_move
+        name, power, speed, cost, type_, sacrifice, range_, user = db_move
         assert range_ in ('target', 'area')
-        cost = cost if cost else 0
-        sacrifice = sacrifice if sacrifice else 0
 
-        move = Attack(name, power, speed, cost, sacrifice, not constant, range_)
+        move = Attack(name, power, speed, cost, sacrifice, type_, range_)
         moves.append((user, move))
 
     for hero_id, move in moves:

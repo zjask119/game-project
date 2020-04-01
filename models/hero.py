@@ -38,7 +38,7 @@ class Hero:
         self.speed = round(self.initial_speed * self.reduction_factor, 1)
         self.defence = round(self.initial_defence * self.reduction_factor, 1)
         for move in self.moves:
-            if not move.reduce:
+            if move.type == 'constant':
                 continue
             move.power = round(move.initial_power * self.reduction_factor, 1)
             move.speed = round(move.initial_speed * self.reduction_factor, 1)
