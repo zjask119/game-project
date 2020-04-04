@@ -28,15 +28,15 @@ def print_teams(game):
     msg += _get_line_separator()
     msg += _wrap_content('TEAMS', )
     msg += _wrap_content([team.name for team in game.teams], )
-    msg += _wrap_content(2 * ['name', 'HP', 'defence', 'speed', 'area'])
+    msg += _wrap_content(2 * ['name', 'HP', 'defence', 'shield', 'speed', 'area'])
 
     max_heroes_len = max([len(team.heroes) for team in game.teams])
     for i in range(max_heroes_len):
         heroes = [team.get_all_heroes()[i] for team in game.teams]
         heroes_info = []
         for hero in heroes:
-            heroes_info.extend([hero.name, hero.hp,
-                                hero.defence, hero.speed, hero.area])
+            heroes_info.extend([hero.name, hero.hp, hero.defence,
+                               hero.shield, hero.speed, hero.area])
         msg += _wrap_content(heroes_info, line_separator=False)
     msg += _get_line_separator()
     print(msg)
@@ -84,8 +84,8 @@ def print_table(data, fields, proportions, with_indices=True):
 
 
 def print_moves(moves, with_indices=True):
-    proportions = [4, 30, 11, 11, 11, 11, 6]
-    fields = ['name', 'power', 'speed', 'sacrifice', 'range', 'cost']
+    proportions = [4, 30, 11, 11, 11, 11, 11, 6]
+    fields = ['name', 'power', 'speed', 'sacrifice', 'type', 'range', 'cost']
     print_table(moves, fields, proportions, with_indices)
 
 

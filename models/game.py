@@ -64,3 +64,10 @@ class Game:
         else:
             victim = choice(heroes)
         return victim
+
+    def prepare_round(self, team_energy):
+        for team in self.teams:
+            team.reduce_heroes_attributes()
+            team.set_energy(team_energy)
+        for hero in self.get_all_heroes():
+            hero.reset_shield()
