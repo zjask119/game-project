@@ -25,7 +25,7 @@ def get_heroes_from_db():
             ,range
             ,user 
         from move
-        where type in ('attack', 'constant')
+        where type in ('attack', 'constant', 'stun', 'shield')
     '''
     cursor.execute(query)
     db_moves = cursor.fetchall()
@@ -40,7 +40,7 @@ def get_heroes_from_db():
 
     for db_move in db_moves:
         name, power, speed, cost, type_, sacrifice, range_, user = db_move
-        assert range_ in ('target', 'area')
+        assert range_ in ('target', 'area', 'self', 'self area')
 
         move = Attack(name, power, speed, cost, sacrifice, type_, range_)
         moves.append((user, move))

@@ -24,8 +24,7 @@ def main():
         game_round += 1
 
         energy = 2 * game_round
-        team1.set_energy(energy)
-        team2.set_energy(energy)
+        game.prepare_round(energy)
 
         def get_characters(char, num): return ''.join(num * [char])
         displayer.print_error(
@@ -43,8 +42,13 @@ def main():
             attacking_team = attacking_hero.team
             enemy_team = team2 if attacking_team == team1 else team1
 
+            if attacking_hero.stunned:
+                print(f'{attacking_hero.name} is stunned and cannot move!')
+                attacking_hero.stunned = False
+                continue
+
             victim_hero = game.choose_victim(attacking_team, enemy_team)
-            attacking_hero.attack_hero(victim_hero)
+            attacking_hero.take_action(victim_hero)
 
             if not team1.is_anybody_alive():
                 print(f'{team2.name} won!')
@@ -53,9 +57,6 @@ def main():
             if not team2.is_anybody_alive():
                 print(f'{team1.name} won!')
                 break
-
-        team1.reduce_heroes_attributes()
-        team2.reduce_heroes_attributes()
 
 
 if __name__ == "__main__":

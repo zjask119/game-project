@@ -12,6 +12,8 @@ class Hero:
     def __init__(self, name: str, hp: float, defence: float,
                  speed: float, area: HeroAreaEnum = HeroAreaEnum.BACK):
         self.name = name
+        self.area = area
+
         self.hp = hp
         self.defence = defence
         self.speed = speed
@@ -21,13 +23,17 @@ class Hero:
         self.initial_speed = speed
 
         self.moves = []
-        self.area = area
         self.alive = True
+        self.stunned = False
+        self.shield = 0
         self.team = None
 
     def add_move(self, move):
         assert isinstance(move, Attack)
         self.moves.append(move)
+
+    def reset_shield(self):
+        self.shield = 0
 
     @property
     def reduction_factor(self):
@@ -62,7 +68,8 @@ class Hero:
 
     @staticmethod
     def calculate_damage(attack, victim_hero, damage_multiplier=1):
-        damage = round(damage_multiplier * attack.power - victim_hero.defence, 1)
+        damage = damage_multiplier * attack.power - victim_hero.defence - victim_hero.shield
+        damage = round(damage, 1)
         return max(0, damage)
 
     def hp_reduction(self, damage):
@@ -78,7 +85,6 @@ class Hero:
                                 if move.cost <= self.team.energy]
             move = random.choice(affordable_moves)
             return move
-
         else:
             while True:
                 print('Choose one of possible moves.\n')
@@ -90,7 +96,7 @@ class Hero:
                     continue
                 return move
 
-    def attack_hero(self, victim_hero):
+    def take_action(self, victim_hero):
         attack = self.choose_attack()
 
         self.team.energy -= attack.cost
@@ -100,15 +106,24 @@ class Hero:
         if attack.range == 'area':
             victims = [hero for hero in victim_hero.team.get_alive_heroes()
                        if hero.area == victim_hero.area]
-
-        else:
+        elif attack.range == 'target':
             victims = [victim_hero]
+        elif attack.range == 'self':
+            victims = []
+            if attack.type == 'shield':
+                self.shield += attack.power
+                print(f'shield: {self.shield}')
+        else:
+            raise NotImplementedError
 
-        print(f'{self.name} is using {attack.range} attack {attack.name}.')
+        print(f'{self.name} is using {attack.range} move {attack.name}.')
         for victim in victims:
             success = random.random() < self.hit_chance(attack, victim)
             print(f'{self.name} is attacking {victim.name}.')
             if success:
+                if attack.type == 'stun':
+                    victim.stunned = True
+                    continue
                 damage_multiplier = 1
                 if victim != victim_hero:
                     damage_multiplier = 0.75
