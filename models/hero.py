@@ -40,7 +40,7 @@ class Hero:
         factor = self.hp / self.initial_hp
         return round(math.sqrt(factor), 2)
 
-    def reduce_attributes(self):
+    def update_attributes(self):
         self.speed = round(self.initial_speed * self.reduction_factor, 1)
         self.defence = round(self.initial_defence * self.reduction_factor, 1)
         for move in self.moves:
@@ -84,7 +84,6 @@ class Hero:
             affordable_moves = [move for move in self.moves
                                 if move.cost <= self.team.energy]
             move = random.choice(affordable_moves)
-            return move
         else:
             while True:
                 print('Choose one of possible moves:')
@@ -94,9 +93,21 @@ class Hero:
                 if move.cost > self.team.energy:
                     print_error("Not enough energy - choose another attack!")
                     continue
-                return move
+        return move
 
-    def take_action(self, victim_hero):
+    @staticmethod
+    def heal_hero(move, hero):
+        heal = (move.power / 100) * hero.initial_hp
+        heal = round(heal, 1)
+        new_hp = min(hero.initial_hp, hero.hp + heal)
+        healed_by = round(new_hp - hero.hp, 1)
+
+        hero.hp = new_hp
+        hero.update_attributes()
+
+        print(f'{hero.name} has been healed by {healed_by} hp')
+
+    def take_action(self, target_team):
         move = self.choose_move()
 
         self.team.energy -= move.cost
@@ -104,11 +115,12 @@ class Hero:
             self.hp_reduction(move.sacrifice)
 
         if move.type in ('attack', 'attack const', 'stun'):
+            target_hero = Game.choose_target(self.team, target_team)
             if move.range == 'area':
-                victims = [hero for hero in victim_hero.team.get_alive_heroes()
-                           if hero.area == victim_hero.area]
+                victims = [hero for hero in target_hero.team.get_alive_heroes()
+                           if hero.area == target_hero.area]
             elif move.range == 'target':
-                victims = [victim_hero]
+                victims = [target_hero]
             else:
                 raise NotImplementedError
 
@@ -119,20 +131,23 @@ class Hero:
                 if success:
                     if move.type == 'stun':
                         victim.stunned = True
-                        print(f'{victim.name} has been stunned!')
+                        print(f'{victim.name} has been stunned!\n')
                         continue
                     damage_multiplier = 1
-                    if victim != victim_hero:
+                    if victim != target_hero:
                         damage_multiplier = 0.75
                     damage = self.calculate_damage(move, victim, damage_multiplier)
                     victim.hp_reduction(damage)
                     print(f'You hit and dealt {damage} damage points!\n')
+                    if not victim.alive:
+                        print(f'{self.name} is dead!')
+
                 else:
                     print('You missed!\n')
 
         elif move.type == 'shield':
             target_heroes = []
-            if move.range == 'target':
+            if move.range == 'self':
                 target_heroes = [self]
             elif move.range == 'self area':
                 target_heroes = self.team.get_alive_heroes(area=self.area)
@@ -143,16 +158,17 @@ class Hero:
 
         elif move.type == 'heal':
             if move.range == 'self':
-                heal = (move.power / 100) * self.initial_hp
-                heal = round(heal, 1)
-                new_hp = min(self.initial_hp, self.hp + heal)
-                healed_by = new_hp - self.hp
-
-                self.hp = new_hp
-                print(f'{self.name} has been healed by {healed_by} hp')
+                target_heroes = [self]
             elif move.range == 'target':
+                target = Game.choose_target(self.team)
+                target_heroes = [target]
+            elif move.range == 'self area':
+                target_heroes = self.team.get_alive_heroes(area=self.area)
+            else:
                 raise NotImplementedError
 
+            for hero in target_heroes:
+                self.heal_hero(move, hero)
         else:
             raise NotImplementedError
 

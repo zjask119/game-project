@@ -30,25 +30,27 @@ def main():
         displayer.print_error(
             f'{get_characters(">", 30)} Round {game_round} {get_characters("<", 30)}\n'.center(152))
 
-        for attacking_hero in game.get_alive_heroes():
-            if not attacking_hero.alive:
+        for active_hero in game.get_alive_heroes():
+            if not active_hero.alive:
                 continue
 
             displayer.print_teams(game)
             print(
-                f'{attacking_hero.team.name} move [ENERGY: {attacking_hero.team.energy}] '
-                f'- {attacking_hero.name} is taking action.'
+                f'{active_hero.team.name} move [ENERGY: {active_hero.team.energy}] '
+                f'- {active_hero.name} is taking action.'
             )
-            attacking_team = attacking_hero.team
-            enemy_team = team2 if attacking_team == team1 else team1
+            active_team = active_hero.team
+            target_team = team2 if active_team == team1 else team1
 
-            if attacking_hero.stunned:
-                print(f'{attacking_hero.name} is stunned and cannot move!')
-                attacking_hero.stunned = False
+            if active_hero.stunned:
+                print(f'{active_hero.name} is stunned and cannot move!')
+                active_hero.stunned = False
                 continue
 
-            victim_hero = game.choose_victim(attacking_team, enemy_team)
-            attacking_hero.take_action(victim_hero)
+            active_hero.take_action(target_team)
+
+            if active_hero.team.npc:
+                input('Press any button to continue...')
 
             if not team1.is_anybody_alive():
                 print(f'{team2.name} won!')
