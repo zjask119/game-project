@@ -77,7 +77,7 @@ class Hero:
         new_hp = max(0, new_hp)
         if new_hp == 0:
             self.alive = False
-        self.hp = round(new_hp, 0)
+        self.hp = round(new_hp, 1)
 
     def choose_move(self):
         if self.team.npc:
@@ -138,13 +138,13 @@ class Hero:
                 target_heroes = self.team.get_alive_heroes(area=self.area)
 
             for hero in target_heroes:
-                print(f'{hero} got {move.power} shield.')
+                print(f'{hero.name} got {move.power} shield.')
                 hero.shield += move.power
 
         elif move.type == 'heal':
             if move.range == 'self':
                 heal = (move.power / 100) * self.initial_hp
-                heal = round(heal, 0)
+                heal = round(heal, 1)
                 new_hp = min(self.initial_hp, self.hp + heal)
                 healed_by = new_hp - self.hp
 

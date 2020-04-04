@@ -16,15 +16,7 @@ def get_heroes_from_db():
     db_heroes = cursor.fetchall()
 
     query = '''
-        select 
-             name
-            ,power
-            ,speed
-            ,cost
-            ,type
-            ,sacrifice
-            ,range
-            ,user 
+        select name, power, speed, cost, type, sacrifice, range, user 
         from move
     '''
     cursor.execute(query)

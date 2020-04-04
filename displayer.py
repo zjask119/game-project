@@ -4,10 +4,10 @@ from termcolor import cprint
 
 
 def print_teams(game):
-    def _get_line_separator(n=170):
+    def _get_line_separator(n=168):
         return '+'.ljust(n, '-') + '+\n'
 
-    def _wrap_content(data, n=170, new_line=True, line_separator=True):
+    def _wrap_content(data, n=168, new_line=True, line_separator=True):
         if isinstance(data, str):
             to_add = n - divmod(n, 2)[1] - 1
             msg = '|' + str(data).center(to_add) + '|'
@@ -32,11 +32,17 @@ def print_teams(game):
 
     max_heroes_len = max([len(team.heroes) for team in game.teams])
     for i in range(max_heroes_len):
-        heroes = [team.get_all_heroes()[i] for team in game.teams]
         heroes_info = []
-        for hero in heroes:
-            heroes_info.extend([hero.name, hero.hp, hero.defence,
-                               hero.shield, hero.speed, hero.area])
+        for team in game.teams:
+            try:
+                hero = team.get_all_heroes()[i]
+            except IndexError:
+                heroes_info.extend(6 * ['-'])
+            else:
+                heroes_info.extend([
+                    hero.name, hero.hp, hero.defence,
+                    hero.shield, hero.speed, hero.area
+                ])
         msg += _wrap_content(heroes_info, line_separator=False)
     msg += _get_line_separator()
     print(msg)
@@ -84,7 +90,7 @@ def print_table(data, fields, proportions, with_indices=True):
 
 
 def print_moves(moves, with_indices=True):
-    proportions = [4, 30, 11, 11, 11, 11, 11, 6]
+    proportions = [4, 30, 11, 11, 11, 15, 11, 6]
     fields = ['name', 'power', 'speed', 'sacrifice', 'type', 'range', 'cost']
     print_table(moves, fields, proportions, with_indices)
 
