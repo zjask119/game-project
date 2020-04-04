@@ -1,7 +1,7 @@
 from operator import attrgetter
 from random import choice
 
-from displayer import print_error
+from displayer import print_error, print_heroes
 from models.enums import HeroAreaEnum
 
 
@@ -30,6 +30,7 @@ class Game:
             try:
                 print(f'\nChoose between 1 - {len(values)}.')
                 index = int(input('Your Choice is: '))
+                print()
             except ValueError:
                 print_error('Given number is not valid! Try again.')
                 continue
@@ -43,9 +44,8 @@ class Game:
         if attacking_team.npc:
             return Game.random_victim(heroes)
 
-        print('Choose opponent from enemy team to attack.\n')
-        for i, hero in enumerate(heroes, 1):
-            print(f'{i}. {hero}')
+        print('\nChoose opponent from enemy team to attack:')
+        print_heroes(heroes)
         num = Game.ask_number(heroes)
         if any(hero.area == HeroAreaEnum.FRONT for hero in heroes):
             while heroes[num - 1].area != HeroAreaEnum.FRONT:

@@ -4,10 +4,10 @@ from termcolor import cprint
 
 
 def print_teams(game):
-    def _get_line_separator(n=150):
+    def _get_line_separator(n=170):
         return '+'.ljust(n, '-') + '+\n'
 
-    def _wrap_content(data, n=150, new_line=True, line_separator=True):
+    def _wrap_content(data, n=170, new_line=True, line_separator=True):
         if isinstance(data, str):
             to_add = n - divmod(n, 2)[1] - 1
             msg = '|' + str(data).center(to_add) + '|'

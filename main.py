@@ -36,9 +36,9 @@ def main():
 
             displayer.print_teams(game)
             print(
-                f'{attacking_hero.team.name} - {attacking_hero.name} is attacking. '
-                f'Energy status: {attacking_hero.team.energy}')
-
+                f'{attacking_hero.team.name} move [ENERGY: {attacking_hero.team.energy}] '
+                f'- {attacking_hero.name} is taking action.'
+            )
             attacking_team = attacking_hero.team
             enemy_team = team2 if attacking_team == team1 else team1
 

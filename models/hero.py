@@ -1,7 +1,7 @@
 import math
 import random
 
-from displayer import print_moves
+from displayer import print_error, print_moves
 from models.attack import Attack
 from models.enums import HeroAreaEnum
 from models.game import Game
@@ -10,7 +10,7 @@ from models.game import Game
 class Hero:
 
     def __init__(self, name: str, hp: float, defence: float,
-                 speed: float, area: HeroAreaEnum = HeroAreaEnum.BACK):
+                 speed: float, area: HeroAreaEnum = None):
         self.name = name
         self.area = area
 
@@ -77,9 +77,9 @@ class Hero:
         new_hp = max(0, new_hp)
         if new_hp == 0:
             self.alive = False
-        self.hp = round(new_hp, 1)
+        self.hp = round(new_hp, 0)
 
-    def choose_attack(self):
+    def choose_move(self):
         if self.team.npc:
             affordable_moves = [move for move in self.moves
                                 if move.cost <= self.team.energy]
@@ -87,51 +87,74 @@ class Hero:
             return move
         else:
             while True:
-                print('Choose one of possible moves.\n')
+                print('Choose one of possible moves:')
                 print_moves(self.moves)
                 num = Game.ask_number(self.moves) - 1
                 move = self.moves[num]
                 if move.cost > self.team.energy:
-                    print("LOW ENERGY! - Choose another attack")
+                    print_error("Not enough energy - choose another attack!")
                     continue
                 return move
 
     def take_action(self, victim_hero):
-        attack = self.choose_attack()
+        move = self.choose_move()
 
-        self.team.energy -= attack.cost
-        if attack.sacrifice:
-            self.hp_reduction(attack.sacrifice)
+        self.team.energy -= move.cost
+        if move.sacrifice:
+            self.hp_reduction(move.sacrifice)
 
-        if attack.range == 'area':
-            victims = [hero for hero in victim_hero.team.get_alive_heroes()
-                       if hero.area == victim_hero.area]
-        elif attack.range == 'target':
-            victims = [victim_hero]
-        elif attack.range == 'self':
-            victims = []
-            if attack.type == 'shield':
-                self.shield += attack.power
-                print(f'shield: {self.shield}')
+        if move.type in ('attack', 'attack const', 'stun'):
+            if move.range == 'area':
+                victims = [hero for hero in victim_hero.team.get_alive_heroes()
+                           if hero.area == victim_hero.area]
+            elif move.range == 'target':
+                victims = [victim_hero]
+            else:
+                raise NotImplementedError
+
+            print(f'{self.name} is using {move.range} attack {move.name}.')
+            for victim in victims:
+                print(f'{self.name} is attacking {victim.name}.')
+                success = random.random() < self.hit_chance(move, victim)
+                if success:
+                    if move.type == 'stun':
+                        victim.stunned = True
+                        print(f'{victim.name} has been stunned!')
+                        continue
+                    damage_multiplier = 1
+                    if victim != victim_hero:
+                        damage_multiplier = 0.75
+                    damage = self.calculate_damage(move, victim, damage_multiplier)
+                    victim.hp_reduction(damage)
+                    print(f'You hit and dealt {damage} damage points!\n')
+                else:
+                    print('You missed!\n')
+
+        elif move.type == 'shield':
+            target_heroes = []
+            if move.range == 'target':
+                target_heroes = [self]
+            elif move.range == 'self area':
+                target_heroes = self.team.get_alive_heroes(area=self.area)
+
+            for hero in target_heroes:
+                print(f'{hero} got {move.power} shield.')
+                hero.shield += move.power
+
+        elif move.type == 'heal':
+            if move.range == 'self':
+                heal = (move.power / 100) * self.initial_hp
+                heal = round(heal, 0)
+                new_hp = min(self.initial_hp, self.hp + heal)
+                healed_by = new_hp - self.hp
+
+                self.hp = new_hp
+                print(f'{self.name} has been healed by {healed_by} hp')
+            elif move.range == 'target':
+                raise NotImplementedError
+
         else:
             raise NotImplementedError
-
-        print(f'{self.name} is using {attack.range} move {attack.name}.')
-        for victim in victims:
-            success = random.random() < self.hit_chance(attack, victim)
-            print(f'{self.name} is attacking {victim.name}.')
-            if success:
-                if attack.type == 'stun':
-                    victim.stunned = True
-                    continue
-                damage_multiplier = 1
-                if victim != victim_hero:
-                    damage_multiplier = 0.75
-                damage = self.calculate_damage(attack, victim, damage_multiplier)
-                print(f'You hit and dealt {damage} damage points!\n')
-                victim.hp_reduction(damage)
-            else:
-                print('You missed!\n')
 
     def __repr__(self):
         return (f'{self.name} with Hp: {self.hp}, def: {self.defence}, '

@@ -1,5 +1,6 @@
 from operator import attrgetter
 
+from models.enums import HeroAreaEnum
 from models.hero import Hero
 
 
@@ -26,8 +27,12 @@ class Team:
             heroes = sorted(heroes, key=attrgetter(sorted_by), reverse=True)
         return heroes
 
-    def get_alive_heroes(self, sorted_by='speed'):
-        return [hero for hero in self.get_all_heroes(sorted_by) if hero.alive]
+    def get_alive_heroes(self, area=None, sorted_by='speed'):
+        heroes = [hero for hero in self.get_all_heroes(sorted_by) if hero.alive]
+        if area:
+            assert type(area) is HeroAreaEnum
+            heroes = [hero for hero in heroes if hero.area == area]
+        return heroes
 
     def is_anybody_alive(self):
         return any([hero.alive for hero in self.get_all_heroes()])

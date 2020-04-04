@@ -1,4 +1,5 @@
 import sqlite3
+from random import sample
 
 from displayer import print_error, print_hero_areas, print_heroes
 from models.attack import Attack
@@ -25,7 +26,6 @@ def get_heroes_from_db():
             ,range
             ,user 
         from move
-        where type in ('attack', 'constant', 'stun', 'shield')
     '''
     cursor.execute(query)
     db_moves = cursor.fetchall()
@@ -35,7 +35,7 @@ def get_heroes_from_db():
 
     for db_hero in db_heroes:
         hero_id, name, hp, defence, speed, mind = db_hero
-        hero = Hero(name, hp, defence, speed, mind)
+        hero = Hero(name, hp, defence, speed)
         heroes[hero_id] = hero
 
     for db_move in db_moves:
@@ -59,30 +59,48 @@ def prepare_teams():
     team1 = Team('Player 1', False)
     answer = ''
     while answer not in ['n', 'p']:
-        answer = input('Wanna fight with NPC [n/N] or other player [p/P] ?').lower().strip()
+        answer = input('Wanna fight with NPC [n/N] or other player [p/P]? ').lower().strip()
     team2 = Team(name='Player 2' if answer == 'p' else 'CPU',
                  npc=False if answer == 'p' else True)
-
+    print()
     return team1, team2
 
 
-def assign_heroes_to_team(heroes, team):
+def random_heroes(heroes):
     while True:
-        print(f'Assigning heroes to {team.name}: ')
+        try:
+            number = int(input('How many heroes would you like to draw?\n'))
+        except ValueError:
+            print_error('Number is not valid! Try again')
+        else:
+            break
+    return sample(range(1, len(heroes) + 1), number)
+
+
+def assign_heroes_to_team(heroes, team):
+    max_heroes = 5
+
+    while True:
+        print(f'Assigning heroes to team {team.name}:')
         print_heroes(heroes)
 
-        print('Enter a list of heroes whitespace separated')
+        print('Enter a list of heroes whitespace separated [0 if random]:')
         choices = set(map(int, input().split()))
+
+        if len(choices) == 1 and list(choices)[0] == 0:
+            choices = random_heroes(heroes)
+            break
 
         if not choices.issubset(set(range(1, len(heroes) + 1))):
             print_error('Given numbers are valid! Try again.')
             continue
-        if not (0 < len(choices) <= 4):
-            print_error('Choose at least one hero, maximum four')
+        if not (0 < len(choices) <= max_heroes):
+            print_error('Choose at least one hero, maximum four!')
             continue
         break
 
     selected_heroes = [heroes[choice - 1] for choice in choices]
+    print(f'\nYou have chosen {", ".join([hero.name for hero in selected_heroes])}.\n')
     for selected_hero in selected_heroes:
         assign_hero_to_area(selected_hero)
         team.add_hero(selected_hero)
