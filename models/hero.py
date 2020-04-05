@@ -97,16 +97,19 @@ class Hero:
         return move
 
     @staticmethod
-    def heal_hero(move, hero):
-        heal = (move.power / 100) * hero.initial_hp
-        heal = round(heal, 1)
+    def increase_hp(hero, heal):
         new_hp = min(hero.initial_hp, hero.hp + heal)
         healed_by = round(new_hp - hero.hp, 1)
 
         hero.hp = new_hp
         hero.update_attributes()
+        print(f'{hero.name} has been healed by {healed_by} hp!')
 
-        print(f'{hero.name} has been healed by {healed_by} hp')
+    @staticmethod
+    def heal_hero(move, hero):
+        heal = (move.power / 100) * hero.initial_hp
+        heal = round(heal, 1)
+        Hero.increase_hp(hero, heal)
 
     def take_action(self, target_team):
         move = self.choose_move()
@@ -115,7 +118,7 @@ class Hero:
         if move.sacrifice:
             self.hp_reduction(move.sacrifice)
 
-        if move.type in ('attack', 'attack const', 'stun'):
+        if move.type in ('attack', 'attack const', 'stun', 'attack stun', 'drain'):
             target_hero = Game.choose_target(self.team, target_team)
             if move.range == 'area':
                 victims = [hero for hero in target_hero.team.get_alive_heroes()
@@ -134,12 +137,22 @@ class Hero:
                         victim.stunned = True
                         print(f'{victim.name} has been stunned!\n')
                         continue
+
+                    if move.type == 'attack stun':
+                        victim.stunned = True
+                        print(f'{victim.name} has been stunned!\n')
+
                     damage_multiplier = 1
                     if victim != target_hero:
                         damage_multiplier = 0.75
                     damage = self.calculate_damage(move, victim, damage_multiplier)
+
+                    if move.type == 'drain':
+                        Hero.increase_hp(self, damage)
+
                     victim.hp_reduction(damage)
                     print(f'You hit and dealt {damage} damage points!\n')
+
                     if not victim.alive:
                         print(f'{self.name} is dead!')
 
