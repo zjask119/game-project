@@ -93,6 +93,7 @@ class Hero:
                 if move.cost > self.team.energy:
                     print_error("Not enough energy - choose another attack!")
                     continue
+                break
         return move
 
     @staticmethod
@@ -168,7 +169,7 @@ class Hero:
                 raise NotImplementedError
 
             for hero in target_heroes:
-                self.heal_hero(move, hero)
+                Hero.heal_hero(move, hero)
         else:
             raise NotImplementedError
 
