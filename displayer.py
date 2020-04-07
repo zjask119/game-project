@@ -49,6 +49,7 @@ def print_teams(game):
 
 
 print_error = partial(cprint, color='red', attrs=['bold'])
+print_yellow = partial(cprint, color='yellow', attrs=['bold'])
 
 
 def get_row_str(proportions, data):
