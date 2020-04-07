@@ -38,13 +38,16 @@ class Game:
                 return index
 
     @staticmethod
-    def choose_victim(attacking_team, enemy_team):
-        heroes = enemy_team.get_alive_heroes()
+    def choose_target(attacking_team, enemy_team=None):
+        if enemy_team:
+            heroes = enemy_team.get_alive_heroes()
+        else:
+            heroes = attacking_team.get_alive_heroes()
 
         if attacking_team.npc:
-            return Game.random_victim(heroes)
+            return Game.random_target(heroes)
 
-        print('\nChoose opponent from enemy team to attack:')
+        print('\nChoose target:')
         print_heroes(heroes)
         num = Game.ask_number(heroes)
         if any(hero.area == HeroAreaEnum.FRONT for hero in heroes):
@@ -57,7 +60,7 @@ class Game:
             return heroes[num - 1]
 
     @staticmethod
-    def random_victim(heroes):
+    def random_target(heroes):
         front_line = [hero for hero in heroes if hero.area == HeroAreaEnum.FRONT]
         if front_line:
             victim = choice(front_line)

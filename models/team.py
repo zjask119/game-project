@@ -46,7 +46,7 @@ class Team:
 
     def reduce_heroes_attributes(self):
         for hero in self.get_all_heroes():
-            hero.reduce_attributes()
+            hero.update_attributes()
 
     def __repr__(self):
         return (f'{self.name} with heroes:\n\t' +
