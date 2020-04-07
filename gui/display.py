@@ -1,8 +1,9 @@
-import random
-
 import pygame
 
-# Define some colors
+from config import IMAGES_DIR
+from main import run_game
+from models.enums import HeroAreaEnum
+
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
@@ -26,7 +27,8 @@ class Board:
     colors = [GREEN, GREEN_LIGHT, BLUE_LIGHT, BLUE]
 
     def __init__(self, width, height):
-        self.surface = pygame.Surface((width, height))
+        image_path = IMAGES_DIR.joinpath('background.png')
+        self.surface = get_image(image_path, (width, height))
         self.areas = []
 
     def add_area(self, area):
@@ -54,43 +56,53 @@ class Board:
 
 class Area:
 
-    def __init__(self, width, height, color):
-        self.surface = pygame.Surface((width, height))
-        self.surface.fill(color)
+    def __init__(self, heroes, area_size):
+        self.surface = pygame.Surface(area_size)
+        self.heroes = heroes
 
     def get_size(self):
         return self.surface.get_size()
 
 
-class Point(pygame.sprite.Sprite):
-
+class Hero(pygame.sprite.Sprite):
     size = (80, 80)
+    images_filepath = IMAGES_DIR.joinpath('characters')
 
-    def __init__(self, color):
-
+    def __init__(self, image_filename):
         pygame.sprite.Sprite.__init__(self)
 
-        self.surface = pygame.Surface(self.size)
-        self.surface.fill(color)
+        filepath = self.images_filepath / image_filename
+
+        self.surface = get_image(filepath, self.size)
         self.rect = self.surface.get_rect()
 
     def get_size(self):
         return self.surface.get_size()
 
 
-def get_image(path, scale):
-    img = pygame.image.load(path)
-    img_size = (int(scale * img.get_width()), int(scale * img.get_height()))
+def get_image(filepath, img_size=None):
+    from pathlib import Path
 
-    resized_img = pygame.transform.scale(img, img_size)
+    if isinstance(filepath, Path):
+        filepath = str(filepath)
 
-    return resized_img
+    img = pygame.image.load(filepath)
+    if img_size:
+        img = pygame.transform.scale(img, img_size)
+
+    return img
 
 
-def prepare_board(board):
+def prepare_board(board, game):
     area_size = board.get_area_size()
-    for i, color in enumerate(board.colors):
-        area = Area(*area_size, color)
+    area_heroes = [
+        game.teams[0].get_all_heroes(area=HeroAreaEnum.BACK),
+        game.teams[0].get_all_heroes(area=HeroAreaEnum.FRONT),
+        game.teams[1].get_all_heroes(area=HeroAreaEnum.FRONT),
+        game.teams[1].get_all_heroes(area=HeroAreaEnum.BACK),
+    ]
+    for heroes in area_heroes:
+        area = Area(heroes, area_size)
         board.add_area(area)
         draw_points(area)
 
@@ -104,13 +116,12 @@ def draw_points(area):
     area_w, area_h = area.get_size()
     area_h -= margin_h
 
-    point_num = random.randint(1, 4)
-    distributed_height = area_h / point_num
-    for j in range(point_num):
-        point = Point(WHITE)
+    distributed_height = area_h / len(area.heroes)
+    for num, hero in enumerate(area.heroes):
+        point = Hero(hero.img_path)
         point_w, point_h = point.get_size()
         pos = (area_w / 2 - point_w / 2,
-               j * distributed_height + distributed_height / 2 - point_h / 2 + margin_h / 2)
+               num * distributed_height + distributed_height / 2 - point_h / 2 + margin_h / 2)
         area.surface.blit(point.surface, pos)
 
 
@@ -131,13 +142,15 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        board = Board(SCREEN_WIDTH, SCREEN_HEIGHT)
+        for game in run_game():
+            board = Board(SCREEN_WIDTH, SCREEN_HEIGHT)
 
-        prepare_board(board)
-        screen.blit(board.surface, (0, 0))
+            prepare_board(board, game)
 
-        pygame.display.flip()
-        clock.tick(0.5)
+            screen.blit(board.surface, (0, 0))
+
+            pygame.display.flip()
+            clock.tick(0.5)
 
     pygame.quit()
 

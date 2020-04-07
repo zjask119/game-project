@@ -10,7 +10,8 @@ from models.game import Game
 class Hero:
 
     def __init__(self, name: str, hp: float, defence: float,
-                 speed: float, area: HeroAreaEnum = None):
+                 speed: float, img_path=None,
+                 area: HeroAreaEnum = None):
         self.name = name
         self.area = area
 
@@ -27,6 +28,8 @@ class Hero:
         self.stunned = False
         self.shield = 0
         self.team = None
+
+        self.img_path = img_path
 
     def add_move(self, move):
         assert isinstance(move, Attack)

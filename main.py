@@ -3,7 +3,7 @@ from models.game import Game
 from utils import assign_heroes_to_team, get_heroes_from_db, prepare_teams
 
 
-def main():
+def run_game():
 
     heroes = get_heroes_from_db()
     team1, team2 = prepare_teams()
@@ -21,6 +21,8 @@ def main():
     game_round = 0
 
     while team1.is_anybody_alive() and team2.is_anybody_alive():
+        yield game
+
         game_round += 1
 
         energy = 2 * game_round
@@ -62,4 +64,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    for _ in run_game():
+        pass
