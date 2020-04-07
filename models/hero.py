@@ -1,7 +1,7 @@
 import math
 import random
 
-from displayer import print_error, print_moves
+from displayer import print_error, print_moves, print_yellow
 from models.attack import Attack
 from models.enums import HeroAreaEnum
 from models.game import Game
@@ -154,7 +154,7 @@ class Hero:
                     print(f'You hit and dealt {damage} damage points!\n')
 
                     if not victim.alive:
-                        print(f'{self.name} is dead!')
+                        print_yellow(f'{victim.name} is dead!\n')
 
                 else:
                     print('You missed!\n')
