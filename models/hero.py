@@ -29,6 +29,9 @@ class Hero:
         self.shield = 0
         self.team = None
 
+        # GUI
+        self.active = False
+        self.victim = False
         self.img_path = img_path
 
     def add_move(self, move):
@@ -115,6 +118,12 @@ class Hero:
         Hero.increase_hp(hero, heal)
 
     def take_action(self, target_team):
+
+        if self.stunned:
+            print(f'{self.name} is stunned and cannot move!')
+            self.stunned = False
+            return
+
         move = self.choose_move()
 
         self.team.energy -= move.cost
@@ -129,10 +138,13 @@ class Hero:
             elif move.range == 'target':
                 victims = [target_hero]
             else:
-                raise NotImplementedError
+                # TODO
+                # raise NotImplementedError
+                return None
 
             print(f'{self.name} is using {move.range} attack {move.name}.')
             for victim in victims:
+                victim.victim = True
                 print(f'{self.name} is attacking {victim.name}.')
                 success = random.random() < self.hit_chance(move, victim)
                 if success:
@@ -182,12 +194,14 @@ class Hero:
             elif move.range == 'self area':
                 target_heroes = self.team.get_alive_heroes(area=self.area)
             else:
-                raise NotImplementedError
+                # raise NotImplementedError
+                return None
 
             for hero in target_heroes:
                 Hero.heal_hero(move, hero)
         else:
-            raise NotImplementedError
+            # raise NotImplementedError
+            return None
 
     def __repr__(self):
         return (f'{self.name} with Hp: {self.hp}, def: {self.defence}, '

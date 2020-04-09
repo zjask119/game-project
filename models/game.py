@@ -74,3 +74,8 @@ class Game:
             team.set_energy(team_energy)
         for hero in self.get_all_heroes():
             hero.reset_shield()
+
+    def reset_attributes(self):
+        for hero in self.get_all_heroes():
+            hero.victim = False
+            hero.active = False

@@ -21,12 +21,13 @@ def run_game():
     game_round = 0
 
     while team1.is_anybody_alive() and team2.is_anybody_alive():
-        yield game
 
         game_round += 1
 
         energy = 2 * game_round
         game.prepare_round(energy)
+
+        yield game
 
         def get_characters(char, num): return ''.join(num * [char])
         displayer.print_error(
@@ -36,6 +37,8 @@ def run_game():
             if not active_hero.alive:
                 continue
 
+            active_hero.active = True
+
             displayer.print_teams(game)
             print(
                 f'{active_hero.team.name} move [ENERGY: {active_hero.team.energy}] '
@@ -44,15 +47,16 @@ def run_game():
             active_team = active_hero.team
             target_team = team2 if active_team == team1 else team1
 
-            if active_hero.stunned:
-                print(f'{active_hero.name} is stunned and cannot move!')
-                active_hero.stunned = False
-                continue
+            yield game
 
             active_hero.take_action(target_team)
 
-            if active_hero.team.npc:
-                input('Press any button to continue...')
+            yield game
+
+            game.reset_attributes()
+
+            # if active_hero.team.npc:
+            input('Press any button to continue...')
 
             if not team1.is_anybody_alive():
                 print(f'{team2.name} won!')
