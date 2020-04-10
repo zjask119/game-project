@@ -18,20 +18,18 @@ def run_game():
           f'{team2}\n'
           f'has begun...')
 
-    game_round = 0
-
     while team1.is_anybody_alive() and team2.is_anybody_alive():
 
-        game_round += 1
+        game.round += 1
 
-        energy = min(2 * game_round, 8)
+        energy = min(2 * game.round, 8)
         game.prepare_round(energy)
 
         yield game
 
         def get_characters(char, num): return ''.join(num * [char])
         displayer.print_error(
-            f'{get_characters(">", 30)} Round {game_round} {get_characters("<", 30)}\n'.center(152))
+            f'{get_characters(">", 30)} Round {game.round} {get_characters("<", 30)}\n'.center(152))
 
         for active_hero in game.get_alive_heroes():
             if not active_hero.alive:
@@ -55,9 +53,6 @@ def run_game():
 
             game.reset_attributes()
 
-            # if active_hero.team.npc:
-            input('Press any button to continue...')
-
             if not team1.is_anybody_alive():
                 print(f'{team2.name} won!')
                 break
@@ -65,6 +60,8 @@ def run_game():
             if not team2.is_anybody_alive():
                 print(f'{team1.name} won!')
                 break
+
+            input('Press any button to continue...')
 
 
 if __name__ == "__main__":

@@ -38,6 +38,7 @@ class Board:
 
         self.prepare_team_zones()
         self.draw_team_zones()
+        self.render_text()
 
     def add_team_zone(self, team_zone):
         self.team_zones.append(team_zone)
@@ -63,6 +64,19 @@ class Board:
         for index, team_zone in enumerate(self.team_zones):
             pos = (index * team_zone_w, 0)
             self.surface.blit(team_zone.surface, pos)
+
+    def render_text(self):
+        font_size = 50
+        font_alpha = 170
+
+        font = pygame.font.Font(None, font_size)
+        text = font.render(f"Round {self.game_obj.round}", True, WHITE)
+        text.set_alpha(font_alpha)
+
+        board_w, _ = self.surface.get_size()
+        w = (board_w - text.get_width()) / 2
+        h = 20
+        self.surface.blit(text, (w, h))
 
     def get_size(self):
         return self.surface.get_size()

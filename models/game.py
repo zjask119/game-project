@@ -12,6 +12,7 @@ class Game:
         assert isinstance(team1, Team)
         assert isinstance(team2, Team)
         self.teams = [team1, team2]
+        self.round = 0
 
     def get_all_heroes(self, sorted_by='speed'):
         heroes = []

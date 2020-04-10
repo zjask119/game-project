@@ -89,7 +89,7 @@ def assign_heroes_to_team(heroes, team):
             print_error('Given numbers are valid! Try again.')
             continue
         if not (0 < len(choices) <= max_heroes):
-            print_error('Choose at least one hero, maximum four!')
+            print_error('Choose at least one hero, maximum five!')
             continue
         break
 
