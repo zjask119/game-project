@@ -35,7 +35,7 @@ class Team:
         return heroes
 
     def is_anybody_alive(self):
-        return any([hero.alive for hero in self.get_all_heroes()])
+        return any(self.get_alive_heroes())
 
     @property
     def num_of_alive_heroes(self):

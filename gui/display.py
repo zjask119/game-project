@@ -28,35 +28,73 @@ SCREEN_HEIGHT = 768
 
 class Board:
 
-    areas_number = 4
-    colors = [GREEN, GREEN_LIGHT, BLUE_LIGHT, BLUE]
+    teams_num = 2
 
     def __init__(self, width, height):
         image_path = IMAGES_DIR.joinpath('background-moon.jpg')
         self.surface = get_image(image_path, (width, height))
-        self.areas = []
+        self.team_zones = []
 
-    def add_area(self, area):
-        self.areas.append(area)
+    def add_team_zone(self, team_zone):
+        self.team_zones.append(team_zone)
+
+    def get_team_zone_size(self):
+        """
+        @return: tuple (width, height)
+        """
+        board_w, board_h = self.get_size()
+        team_zone_w = int(board_w / self.teams_num)
+        return team_zone_w, board_h
+
+    def draw_team_zones(self):
+        team_zone_w, _ = self.get_team_zone_size()
+        for index, team_zone in enumerate(self.team_zones):
+            pos = (index * team_zone_w, 0)
+            self.surface.blit(team_zone.surface, pos)
 
     def get_size(self):
         return self.surface.get_size()
+
+
+class TeamZone:
+
+    areas_num = 2
+
+    def __init__(self, team, side, size):
+        self.surface = pygame.Surface(size)
+        self.team = team
+        self.side = side
+        self.areas = []
+
+        self.add_areas()
+        self.draw_areas()
+
+    def add_areas(self):
+        zones = [HeroAreaEnum.BACK, HeroAreaEnum.FRONT]
+        if self.side == 'right':
+            zones = zones[::-1]
+
+        for zone in zones:
+            heroes = self.team.get_all_heroes(area=zone, sorted_by=None)
+            area = Area(heroes, self.get_area_size())
+            self.areas.append(area)
 
     def get_area_size(self):
         """
         @return: tuple (width, height)
         """
         board_w, board_h = self.get_size()
-        area_w = int(board_w / self.areas_number)
+        area_w = int(board_w / self.areas_num)
         return area_w, board_h
 
-    def get_areas(self):
-        result = []
+    def draw_areas(self):
         area_w, _ = self.get_area_size()
         for index, area in enumerate(self.areas):
             pos = (index * area_w, 0)
-            result.append((pos, area))
-        return result
+            self.surface.blit(area.surface, pos)
+
+    def get_size(self):
+        return self.surface.get_size()
 
 
 class Area:
@@ -64,6 +102,26 @@ class Area:
     def __init__(self, heroes, area_size):
         self.surface = pygame.Surface(area_size)
         self.heroes = heroes
+        self.draw_heroes()
+
+    def draw_heroes(self):
+        if not self.heroes:
+            return
+
+        area_w, area_h = self.get_size()
+
+        margin_h = 200
+        area_h -= margin_h
+
+        distributed_height = area_h / len(self.heroes)
+
+        for num, hero in enumerate(self.heroes):
+            hero_sprint = HeroZone(hero)
+            point_w, point_h = hero_sprint.size
+
+            x = area_w / 2 - point_w / 2
+            y = num * distributed_height + distributed_height / 2 - point_h / 2 + margin_h / 2
+            self.surface.blit(hero_sprint.surface, (x, y))
 
     def get_size(self):
         return self.surface.get_size()
@@ -122,7 +180,7 @@ class HeroZone:
 
 class HeroImage(pygame.sprite.Sprite):
     size = (120, 120)
-    border_size = 5
+    border_size = 3
 
     images_filepath = IMAGES_DIR.joinpath('characters')
 
@@ -138,9 +196,7 @@ class HeroImage(pygame.sprite.Sprite):
         filepath = self.images_filepath / hero.img_path
 
         surface = pygame.Surface(self.size)
-        if hero.alive:
-            surface.set_alpha(230)
-        else:
+        if not hero.alive:
             surface.set_alpha(120)
 
         if self.hero_obj.active:
@@ -172,41 +228,15 @@ def get_image(filepath, img_size=None):
 
 
 def prepare_board(board, game):
-    area_size = board.get_area_size()
-    area_heroes = [
-        game.teams[0].get_all_heroes(area=HeroAreaEnum.BACK),
-        game.teams[0].get_all_heroes(area=HeroAreaEnum.FRONT),
-        game.teams[1].get_all_heroes(area=HeroAreaEnum.FRONT),
-        game.teams[1].get_all_heroes(area=HeroAreaEnum.BACK),
+    team_zone_size = board.get_team_zone_size()
+
+    team_zones = [
+        TeamZone(game.teams[0], 'left', team_zone_size),
+        TeamZone(game.teams[1], 'right', team_zone_size),
     ]
-    for heroes in area_heroes:
-        area = Area(heroes, area_size)
-        board.add_area(area)
-        draw_heroes(area)
-
-    for pos, area in board.get_areas():
-        board.surface.blit(area.surface, pos)
-
-
-def draw_heroes(area):
-
-    if not area.heroes:
-        return
-
-    area_w, area_h = area.get_size()
-
-    margin_h = 200
-    area_h -= margin_h
-
-    distributed_height = area_h / len(area.heroes)
-
-    for num, hero in enumerate(area.heroes):
-        hero_sprint = HeroZone(hero)
-        point_w, point_h = hero_sprint.size
-
-        x = area_w / 2 - point_w / 2
-        y = num * distributed_height + distributed_height / 2 - point_h / 2 + margin_h / 2
-        area.surface.blit(hero_sprint.surface, (x, y))
+    for team_zone in team_zones:
+        board.add_team_zone(team_zone)
+    board.draw_team_zones()
 
 
 def main():
