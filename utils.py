@@ -9,15 +9,15 @@ from models.team import Team
 
 
 def get_heroes_from_db():
-    conn = sqlite3.connect('base.db')
+    conn = sqlite3.connect('../base.db')
     cursor = conn.cursor()
-    query = 'select id, name, hp, defence, speed, mind from hero;'
+    query = 'select id, name, hp, defence, speed, mind, path from Hero'
     cursor.execute(query)
     db_heroes = cursor.fetchall()
 
     query = '''
         select name, power, speed, cost, type, sacrifice, range, user 
-        from move
+        from Move
     '''
     cursor.execute(query)
     db_moves = cursor.fetchall()
@@ -26,13 +26,14 @@ def get_heroes_from_db():
     moves = []
 
     for db_hero in db_heroes:
-        hero_id, name, hp, defence, speed, mind = db_hero
-        hero = Hero(name, hp, defence, speed)
+        hero_id, name, hp, defence, speed, mind, img_path = db_hero
+        hero = Hero(name, hp, defence, speed, img_path)
         heroes[hero_id] = hero
 
     for db_move in db_moves:
         name, power, speed, cost, type_, sacrifice, range_, user = db_move
         assert range_ in ('target', 'area', 'self', 'self area')
+        power = power if power else 0
 
         move = Attack(name, power, speed, cost, sacrifice, type_, range_)
         moves.append((user, move))

@@ -21,17 +21,17 @@ class Team:
         hero.team = self
         self.heroes.add(hero)
 
-    def get_all_heroes(self, sorted_by='speed'):
+    def get_all_heroes(self, area=None, sorted_by='speed'):
         heroes = list(self.heroes)
+        if area:
+            assert type(area) is HeroAreaEnum
+            heroes = [hero for hero in heroes if hero.area == area]
         if sorted_by:
             heroes = sorted(heroes, key=attrgetter(sorted_by), reverse=True)
         return heroes
 
     def get_alive_heroes(self, area=None, sorted_by='speed'):
-        heroes = [hero for hero in self.get_all_heroes(sorted_by) if hero.alive]
-        if area:
-            assert type(area) is HeroAreaEnum
-            heroes = [hero for hero in heroes if hero.area == area]
+        heroes = [hero for hero in self.get_all_heroes(area, sorted_by) if hero.alive]
         return heroes
 
     def is_anybody_alive(self):
