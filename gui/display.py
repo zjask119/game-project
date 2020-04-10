@@ -30,10 +30,14 @@ class Board:
 
     teams_num = 2
 
-    def __init__(self, width, height):
-        image_path = IMAGES_DIR.joinpath('background-moon.jpg')
-        self.surface = get_image(image_path, (width, height))
+    def __init__(self, game, size):
+        image_path = IMAGES_DIR.joinpath('background.jpg')
+        self.surface = get_image(image_path, size)
+        self.game_obj = game
         self.team_zones = []
+
+        self.prepare_team_zones()
+        self.draw_team_zones()
 
     def add_team_zone(self, team_zone):
         self.team_zones.append(team_zone)
@@ -45,6 +49,14 @@ class Board:
         board_w, board_h = self.get_size()
         team_zone_w = int(board_w / self.teams_num)
         return team_zone_w, board_h
+
+    def prepare_team_zones(self):
+        team_zones = [
+            TeamZone(self.game_obj.teams[0], 'left', self.get_team_zone_size()),
+            TeamZone(self.game_obj.teams[1], 'right', self.get_team_zone_size()),
+        ]
+        for team_zone in team_zones:
+            self.add_team_zone(team_zone)
 
     def draw_team_zones(self):
         team_zone_w, _ = self.get_team_zone_size()
@@ -66,10 +78,11 @@ class TeamZone:
         self.side = side
         self.areas = []
 
-        self.add_areas()
+        self.prepare_areas()
         self.draw_areas()
+        self.draw_energy()
 
-    def add_areas(self):
+    def prepare_areas(self):
         zones = [HeroAreaEnum.BACK, HeroAreaEnum.FRONT]
         if self.side == 'right':
             zones = zones[::-1]
@@ -93,6 +106,21 @@ class TeamZone:
             pos = (index * area_w, 0)
             self.surface.blit(area.surface, pos)
 
+    def draw_energy(self):
+        size = 35
+        image_path = IMAGES_DIR.joinpath('energy.png')
+        energy_surf = get_image(image_path, 2 * (size, ))
+        energy = self.team.energy
+
+        for i in range(energy):
+            if self.side == 'left':
+                w = size / 2
+            else:
+                team_zone_w, team_zone_h = self.get_size()
+                w = team_zone_w - 1.5 * size
+            h = size / 2 + 1.5 * size * i
+            self.surface.blit(energy_surf, (w, h))
+
     def get_size(self):
         return self.surface.get_size()
 
@@ -110,7 +138,7 @@ class Area:
 
         area_w, area_h = self.get_size()
 
-        margin_h = 200
+        margin_h = 100
         area_h -= margin_h
 
         distributed_height = area_h / len(self.heroes)
@@ -129,7 +157,7 @@ class Area:
 
 class HeroZone:
 
-    size = (120, 140)
+    size = (100, 120)
 
     def __init__(self, hero):
         self.hero_obj = hero
@@ -146,7 +174,7 @@ class HeroZone:
         border = 1
 
         hp_surface = pygame.Surface((width, height))
-        hp_surface.set_alpha(200)
+        hp_surface.set_alpha(220)
         hp_surface.fill(BLACK)
 
         colors = [RED, ORANGE, YELLOW, GREEN_LIGHT]
@@ -179,7 +207,7 @@ class HeroZone:
 
 
 class HeroImage(pygame.sprite.Sprite):
-    size = (120, 120)
+    size = 2 * (100, )
     border_size = 3
 
     images_filepath = IMAGES_DIR.joinpath('characters')
@@ -197,7 +225,7 @@ class HeroImage(pygame.sprite.Sprite):
 
         surface = pygame.Surface(self.size)
         if not hero.alive:
-            surface.set_alpha(120)
+            surface.set_alpha(150)
 
         if self.hero_obj.active:
             surface.fill(GOLD)
@@ -227,20 +255,7 @@ def get_image(filepath, img_size=None):
     return img
 
 
-def prepare_board(board, game):
-    team_zone_size = board.get_team_zone_size()
-
-    team_zones = [
-        TeamZone(game.teams[0], 'left', team_zone_size),
-        TeamZone(game.teams[1], 'right', team_zone_size),
-    ]
-    for team_zone in team_zones:
-        board.add_team_zone(team_zone)
-    board.draw_team_zones()
-
-
 def main():
-
     pygame.init()
 
     # Set up the drawing window
@@ -257,10 +272,7 @@ def main():
                 running = False
 
         for game in run_game():
-            board = Board(SCREEN_WIDTH, SCREEN_HEIGHT)
-
-            prepare_board(board, game)
-
+            board = Board(game, (SCREEN_WIDTH, SCREEN_HEIGHT))
             screen.blit(board.surface, (0, 0))
 
             pygame.display.flip()

@@ -24,7 +24,7 @@ def run_game():
 
         game_round += 1
 
-        energy = 2 * game_round
+        energy = min(2 * game_round, 8)
         game.prepare_round(energy)
 
         yield game
