@@ -49,7 +49,8 @@ def get_heroes_from_db():
 
 
 def prepare_teams():
-    team1 = Team('Player 1', False)
+    team1_as_npc = False
+    team1 = Team('Player 1', team1_as_npc)
     answer = ''
     while answer not in ['n', 'p']:
         answer = input('Wanna fight with NPC [n/N] or other player [p/P]? ').lower().strip()

@@ -157,7 +157,7 @@ class Area:
 
 class HeroZone:
 
-    size = (100, 120)
+    size = (150, 120)
 
     def __init__(self, hero):
         self.hero_obj = hero
@@ -166,10 +166,11 @@ class HeroZone:
         self.hero_image_sprite = HeroImage(hero)
         self.hp_surface = self.create_hp_surface()
 
-        self.draw()
+        self.draw_hero_hp()
+        self.draw_icons()
 
     def create_hp_surface(self):
-        width = self.size[0]
+        width = self.hero_image_sprite.size[0]
         height = 10
         border = 1
 
@@ -195,15 +196,39 @@ class HeroZone:
 
         return hp_surface
 
-    def draw(self):
+    def draw_icons(self):
+        max_num_of_icons = 2
+        icon_h = 30
+        inactive_icon_alpha = 150
+
+        zone_w, zone_h = self.size
+        img_w, _ = self.hero_image_sprite.size
+
+        icon_w = int(0.75 * icon_h)
+        stun = get_image(IMAGES_DIR.joinpath('stun.png'), (icon_w, icon_h)).convert_alpha()
+        shield = get_image(IMAGES_DIR.joinpath('shield.png'), (icon_w, icon_h)).convert_alpha()
+
+        distributed_height = zone_h / max_num_of_icons
+
+        w = img_w + (zone_w - img_w - icon_w) / 2
+
+        h = 0 * distributed_height + distributed_height / 2 - icon_h / 2
+        if not self.hero_obj.stunned:
+            stun.set_alpha(inactive_icon_alpha)
+        self.surface.blit(stun, (w, h))
+
+        h = 1 * distributed_height + distributed_height / 2 - icon_h / 2
+        if self.hero_obj.shield == 0:
+            shield.set_alpha(inactive_icon_alpha)
+        self.surface.blit(shield, (w, h))
+
+    def draw_hero_hp(self):
         zone_w, zone_h = self.size
         image_w, image_h = self.hero_image_sprite.surface.get_size()
         hp_bar_w, hp_bar_h = self.hp_surface.get_size()
 
-        self.surface.blit(self.hero_image_sprite.surface, ((zone_w - image_w) / 2,
-                                                           (zone_h - image_h + hp_bar_h) / 2))
-        self.surface.blit(self.hp_surface, ((zone_w - image_w) / 2,
-                                            (zone_h - image_h + hp_bar_h) / 2 - hp_bar_h))
+        self.surface.blit(self.hero_image_sprite.surface, (0, (zone_h - image_h + hp_bar_h) / 2))
+        self.surface.blit(self.hp_surface, (0, (zone_h - image_h + hp_bar_h) / 2 - hp_bar_h))
 
 
 class HeroImage(pygame.sprite.Sprite):
