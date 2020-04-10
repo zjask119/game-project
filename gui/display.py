@@ -32,7 +32,7 @@ class Board:
     colors = [GREEN, GREEN_LIGHT, BLUE_LIGHT, BLUE]
 
     def __init__(self, width, height):
-        image_path = IMAGES_DIR.joinpath('background.png')
+        image_path = IMAGES_DIR.joinpath('background-moon.jpg')
         self.surface = get_image(image_path, (width, height))
         self.areas = []
 
@@ -106,11 +106,6 @@ class HeroZone:
             left_bar = pygame.Surface((left_w, bar_h))
             left_bar.fill(color)
             hp_surface.blit(left_bar, (border, border))
-
-        right_w = width - left_w - 2 * border
-        if right_w > 0:
-            right_bar = pygame.Surface((right_w, bar_h))
-            hp_surface.blit(right_bar, (border + left_w, border))
 
         return hp_surface
 
