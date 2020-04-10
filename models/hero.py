@@ -10,7 +10,7 @@ from models.game import Game
 class Hero:
 
     def __init__(self, name: str, hp: float, defence: float,
-                 speed: float, img_path=None,
+                 speed: float, recovery: float, img_path=None,
                  area: HeroAreaEnum = None):
         self.name = name
         self.area = area
@@ -18,6 +18,7 @@ class Hero:
         self.hp = hp
         self.defence = defence
         self.speed = speed
+        self.recovery = recovery
 
         self.initial_hp = hp
         self.initial_defence = defence
@@ -202,6 +203,11 @@ class Hero:
         else:
             # raise NotImplementedError
             return None
+
+    def self_recovery(self):
+        recovery = round(self.recovery / 100 * self.hp, 1)
+        self.hp = min(self.hp + recovery, self.initial_hp)
+        self.update_attributes()
 
     def __repr__(self):
         return (f'{self.name} with Hp: {self.hp}, def: {self.defence}, '

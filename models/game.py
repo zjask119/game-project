@@ -75,6 +75,7 @@ class Game:
             team.set_energy(team_energy)
         for hero in self.get_all_heroes():
             hero.reset_shield()
+            hero.self_recovery()
 
     def reset_attributes(self):
         for hero in self.get_all_heroes():

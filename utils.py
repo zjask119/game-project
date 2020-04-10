@@ -9,9 +9,9 @@ from models.team import Team
 
 
 def get_heroes_from_db():
-    conn = sqlite3.connect('../base.db')
+    conn = sqlite3.connect('base.db')
     cursor = conn.cursor()
-    query = 'select id, name, hp, defence, speed, mind, path from Hero'
+    query = 'select id, name, hp, defence, speed, recovery, mind, path from Hero'
     cursor.execute(query)
     db_heroes = cursor.fetchall()
 
@@ -26,8 +26,8 @@ def get_heroes_from_db():
     moves = []
 
     for db_hero in db_heroes:
-        hero_id, name, hp, defence, speed, mind, img_path = db_hero
-        hero = Hero(name, hp, defence, speed, img_path)
+        hero_id, name, hp, defence, speed, recovery, mind, img_path = db_hero
+        hero = Hero(name, hp, defence, speed, recovery, img_path)
         heroes[hero_id] = hero
 
     for db_move in db_moves:
