@@ -38,10 +38,7 @@ class Board:
         self.game_obj = game
         self.team_zones = []
 
-        self.prepare_team_zones()
-        self.draw_team_zones()
-        self.render_round_text()
-        self.render_moves()
+        self.render()
 
     def add_team_zone(self, team_zone):
         self.team_zones.append(team_zone)
@@ -52,7 +49,8 @@ class Board:
         """
         board_w, board_h = self.get_size()
         team_zone_w = int(board_w / self.teams_num)
-        return team_zone_w, board_h
+        team_zone_h = board_h - 100
+        return team_zone_w, team_zone_h
 
     def prepare_team_zones(self):
         team_zones = [
@@ -81,7 +79,30 @@ class Board:
         h = 20
         self.surface.blit(text, (w, h))
 
-    def render_moves(self):
+    def render_moves_zone(self):
+        moves_zone = MovesZone(self.game_obj, self.surface.get_width())
+        self.surface.blit(moves_zone.surface, (0, self.surface.get_height() - moves_zone.height))
+
+    def render(self):
+        self.prepare_team_zones()
+        self.draw_team_zones()
+        self.render_round_text()
+        self.render_moves_zone()
+
+    def get_size(self):
+        return self.surface.get_size()
+
+
+class MovesZone:
+
+    height = 100
+
+    def __init__(self, game, width):
+        self.surface = pygame.Surface((width, self.height))
+        self.game_obj = game
+        self.prepare_moves_surface()
+
+    def prepare_moves_surface(self):
         active_hero = self.game_obj.get_active_hero()
         if not active_hero or active_hero.team.npc:
             return
@@ -91,41 +112,63 @@ class Board:
         text_margin_w = 20
         text_margin_h = 10
         bottom_margin = left_margin = 20
-        fields = ['id', 'name', 'sacrifice', 'type', 'range', 'cost']
+        fields = ['id', 'name', 'type', 'range', 'sacrifice', 'cost']
 
-        lines = [fields]
+        lines = []
         for obj in active_hero.moves:
             row = [getattr(obj, field) for field in fields]
+            name = f'{row[0]}.{row[1]}'
+            row[1] = name
+            row.pop(0)
             lines.append(row)
 
-        text_surfaces = []
+        final_fields = ['id_name', 'type', 'range', 'sacrifice', 'cost']
+
+        rows = []
         max_column_length = defaultdict(int)
+
+        test_font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
+        text_height = test_font.get_height()
+        del test_font
+
         for line in lines:
-            line_texts = []
+            row = []
             for i, entry in enumerate(line):
-                font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
-                text = font.render(str(entry), True, WHITE)
-                text.set_alpha(font_alpha)
-                max_column_length[i] = max(
-                    max_column_length[i], text.get_width() + text_margin_w
-                )
-                line_texts.append(text)
-            text_surfaces.append(line_texts)
+                field = final_fields[i]
+
+                if field == 'cost':
+                    stars_interval = 3
+                    energy_surf = get_image(IMAGES_DIR.joinpath('energy.png'), 2 * (text_height, ))  # noqa
+                    surf = pygame.Surface((entry * (text_height + stars_interval), text_height))
+                    for k in range(entry):
+                        surf.blit(energy_surf, (k * (text_height + stars_interval), 0))
+
+                else:
+                    font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
+                    text = font.render(str(entry), True, WHITE)
+                    text.set_alpha(font_alpha)
+                    surf = text
+
+                column_width = surf.get_width() + text_margin_w
+
+                max_column_length[i] = max(max_column_length[i], column_width)
+
+                row.append(surf)
+            rows.append(row)
 
         board_w, board_h = self.surface.get_size()
-        for i, line in enumerate(text_surfaces):
+        for i, line in enumerate(rows):
             w = left_margin
-            h = board_h - (len(text_surfaces) - i) * (line[0].get_height() + text_margin_h) - bottom_margin  # noqa
+            h = board_h - (len(rows) - i) * (text_height + text_margin_h) - bottom_margin  # noqa
+
             for j, entry in enumerate(line, 0):
                 w += max_column_length[j - 1] if j > 0 else 0
-                surf = pygame.Surface((max_column_length[j], entry.get_height() + text_margin_h))
+
+                surf = pygame.Surface((max_column_length[j], text_height + text_margin_h))
                 rect = surf.get_rect()
                 pygame.draw.rect(surf, WHITE, rect, 1)
                 surf.blit(entry, (text_margin_w / 2, text_margin_h / 2))
                 self.surface.blit(surf, (w, h))
-
-    def get_size(self):
-        return self.surface.get_size()
 
 
 class TeamZone:
