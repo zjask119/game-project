@@ -41,8 +41,9 @@ class Hero:
         move.id = len(self.moves) + 1
         self.moves.append(move)
 
-    def reset_shield(self):
+    def reset_flags(self):
         self.shield = 0
+        self.stunned = False
 
     @property
     def reduction_factor(self):
@@ -128,7 +129,6 @@ class Hero:
 
         if self.stunned:
             print(f'{self.name} is stunned and cannot move!')
-            self.stunned = False
             return
 
         move = self.choose_move()

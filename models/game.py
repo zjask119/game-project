@@ -76,10 +76,10 @@ class Game:
 
     def prepare_round(self, team_energy):
         for hero in self.get_all_heroes():
-            hero.reset_shield()
+            hero.reset_flags()
             hero.self_recovery()
+            hero.update_attributes()
         for team in self.teams:
-            team.update_heroes_attributes()
             team.set_energy(team_energy)
 
     def reset_attributes(self):

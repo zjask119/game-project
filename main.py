@@ -39,7 +39,8 @@ def run_game():
             active_team = active_hero.team
             target_team = team2 if active_team == team1 else team1
 
-            target_team.assign_ids()
+            if not active_team.npc:
+                target_team.assign_ids()
 
             yield game
 

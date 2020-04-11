@@ -44,10 +44,6 @@ class Team:
     def set_energy(self, points):
         self.energy = points
 
-    def update_heroes_attributes(self):
-        for hero in self.get_all_heroes():
-            hero.update_attributes()
-
     def assign_ids(self):
         for id_, hero in enumerate(self.get_alive_heroes(), 1):
             hero.id = id_
