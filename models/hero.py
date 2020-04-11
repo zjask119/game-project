@@ -122,6 +122,10 @@ class Hero:
 
     def take_action(self, target_team):
 
+        print(
+            f'{self.team.name} move [ENERGY: {self.team.energy}] - {self.name} is taking action.\n'
+        )
+
         if self.stunned:
             print(f'{self.name} is stunned and cannot move!')
             self.stunned = False

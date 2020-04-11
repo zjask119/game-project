@@ -27,25 +27,20 @@ def run_game():
 
         yield game
 
-        def get_characters(char, num): return ''.join(num * [char])
-        displayer.print_error(
-            f'{get_characters(">", 30)} Round {game.round} {get_characters("<", 30)}\n'.center(152))
+        displayer.print_yellow(f'>>> Round {game.round} <<<'.center(190))
 
         for active_hero in game.get_alive_heroes():
             if not active_hero.alive:
                 continue
 
-            active_hero.active = True
-
             displayer.print_teams(game)
-            print(
-                f'{active_hero.team.name} move [ENERGY: {active_hero.team.energy}] '
-                f'- {active_hero.name} is taking action.'
-            )
+
+            active_hero.active = True
             active_team = active_hero.team
             target_team = team2 if active_team == team1 else team1
 
             target_team.assign_ids()
+
             yield game
 
             active_hero.take_action(target_team)
