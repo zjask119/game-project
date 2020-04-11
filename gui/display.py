@@ -2,7 +2,7 @@ from collections import defaultdict
 
 import pygame
 
-from config import IMAGES_DIR
+from config import ICONS_DIR, IMAGES_DIR
 from main import run_game
 from models.enums import HeroAreaEnum
 
@@ -49,7 +49,7 @@ class Board:
         """
         board_w, board_h = self.get_size()
         team_zone_w = int(board_w / self.teams_num)
-        team_zone_h = board_h - 100
+        team_zone_h = board_h - MovesZone.height
         return team_zone_w, team_zone_h
 
     def prepare_team_zones(self):
@@ -95,7 +95,7 @@ class Board:
 
 class MovesZone:
 
-    height = 100
+    height = 150
 
     def __init__(self, game, width):
         self.surface = pygame.Surface((width, self.height))
@@ -107,68 +107,120 @@ class MovesZone:
         if not active_hero or active_hero.team.npc:
             return
 
-        font_size = 25
+        num_zones = len(active_hero.moves)
+        if not num_zones:
+            return
+
+        zone_w = int(self.surface.get_width() / num_zones)
+        zone_h = self.height
+        zone_size = (zone_w, zone_h)
+
+        for i, move in enumerate(active_hero.moves):
+            move_zone = Move(move, zone_size)
+
+            self.surface.blit(move_zone.surface, (i * zone_w, 0))
+
+
+class Move:
+
+    def __init__(self, move, size):
+        self.surface = pygame.Surface(size)
+        self.move_obj = move
+
+        self.render()
+
+    def get_icon_filename(self):
+
+        type_ = self.move_obj.type
+        range_ = self.move_obj.range
+
+        icon_map = {
+            ('attack', 'area'): 'attack_area.png',
+            ('attack', 'target'): 'attack_target.png',
+            ('attack const', 'area'): 'attack_const_area.png',
+            ('attack const', 'target'): 'attack_const_target.png',
+            ('attack stun', 'area'): 'stun_target.png',
+            ('drain', 'target'): 'drain_target.png',
+            ('heal', 'self'): 'heal_self.png',
+            ('heal', 'self area'): 'heal_self_area.png',
+            ('heal', 'target'): 'heal_target.png',
+            ('shield', 'self'): 'shield_self.png',
+            ('shield', 'self area'): 'shield_self_area.png',
+            ('stun', 'target'): 'stun_target.png',
+        }
+
+        return icon_map[(type_, range_)]
+
+    def get_move_surf(self):
+        move_icon_diameter = 80
+
+        filename_abs = ICONS_DIR.joinpath(self.get_icon_filename())
+        icon_surf = get_image(filename_abs, 2 * (move_icon_diameter, ))
+
+        return icon_surf
+
+    def get_cost_surf(self):
+        icon_size = 25
+        icons_interval = 3
+
+        cost = self.move_obj.cost
+        cost_surf = get_image(ICONS_DIR.joinpath('energy.png'), 2 * (icon_size, ))  # noqa
+        surf = pygame.Surface((cost * (icon_size + icons_interval), icon_size))
+        for k in range(cost):
+            surf.blit(cost_surf, (k * (icon_size + icons_interval), 0))
+
+        return surf
+
+    def get_move_name_surf(self):
+        font_size = 30
         font_alpha = 230
-        text_margin_w = 20
-        text_margin_h = 10
-        bottom_margin = left_margin = 20
-        fields = ['id', 'name', 'type', 'range', 'sacrifice', 'cost']
+        font = pygame.font.SysFont(None, font_size)
+        text = font.render(str(self.move_obj.name), True, WHITE)
+        text.set_alpha(font_alpha)
 
-        lines = []
-        for obj in active_hero.moves:
-            row = [getattr(obj, field) for field in fields]
-            name = f'{row[0]}.{row[1]}'
-            row[1] = name
-            row.pop(0)
-            lines.append(row)
+        return text
 
-        final_fields = ['id_name', 'type', 'range', 'sacrifice', 'cost']
+    def get_move_id_surf(self):
+        font_size = 30
+        font_alpha = 230
+        font = pygame.font.SysFont(None, font_size)
+        text = font.render(str(self.move_obj.id), True, WHITE)
+        text.set_alpha(font_alpha)
 
-        rows = []
-        max_column_length = defaultdict(int)
+        return text
 
-        test_font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
-        text_height = test_font.get_height()
-        del test_font
+    def render(self):
+        zone_w, zone_h = self.get_size()
+        left_margin = 50
 
-        for line in lines:
-            row = []
-            for i, entry in enumerate(line):
-                field = final_fields[i]
+        move_surf = self.get_move_surf()
+        move_icon_w, move_icon_h = move_surf.get_size()
+        pos_x = left_margin
+        pos_y = (zone_h - move_icon_h) / 2
 
-                if field == 'cost':
-                    stars_interval = 3
-                    energy_surf = get_image(IMAGES_DIR.joinpath('energy.png'), 2 * (text_height, ))  # noqa
-                    surf = pygame.Surface((entry * (text_height + stars_interval), text_height))
-                    for k in range(entry):
-                        surf.blit(energy_surf, (k * (text_height + stars_interval), 0))
+        self.surface.blit(move_surf, (pos_x, pos_y))
 
-                else:
-                    font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
-                    text = font.render(str(entry), True, WHITE)
-                    text.set_alpha(font_alpha)
-                    surf = text
+        cost_surf = self.get_cost_surf()
+        cost_surf_w, cost_surf_h = cost_surf.get_size()
 
-                column_width = surf.get_width() + text_margin_w
+        pos_x = left_margin + (move_icon_w - cost_surf_w) / 2
+        pos_y = ((zone_h - move_icon_h) / 2 - cost_surf_h - 10)
+        self.surface.blit(cost_surf, (pos_x, pos_y))
 
-                max_column_length[i] = max(max_column_length[i], column_width)
+        move_name_surf = self.get_move_name_surf()
+        move_name_surf_w, move_name_surf_h = move_name_surf.get_size()
+        pos_x = left_margin + move_icon_w + 10
+        pos_y = ((zone_h - move_name_surf_h) / 2)
+        self.surface.blit(move_name_surf, (pos_x, pos_y))
 
-                row.append(surf)
-            rows.append(row)
+        move_id_surf = self.get_move_id_surf()
+        move_id_surf_w, move_id_surf_h = move_id_surf.get_size()
+        pos_x = left_margin - move_id_surf_w - 10
+        pos_y = ((zone_h - move_id_surf_h) / 2)
+        self.surface.blit(move_id_surf, (pos_x, pos_y))
 
-        board_w, board_h = self.surface.get_size()
-        for i, line in enumerate(rows):
-            w = left_margin
-            h = board_h - (len(rows) - i) * (text_height + text_margin_h) - bottom_margin  # noqa
-
-            for j, entry in enumerate(line, 0):
-                w += max_column_length[j - 1] if j > 0 else 0
-
-                surf = pygame.Surface((max_column_length[j], text_height + text_margin_h))
-                rect = surf.get_rect()
-                pygame.draw.rect(surf, WHITE, rect, 1)
-                surf.blit(entry, (text_margin_w / 2, text_margin_h / 2))
-                self.surface.blit(surf, (w, h))
+    def get_size(self):
+        return self.surface.get_size()
 
 
 class TeamZone:
@@ -211,7 +263,7 @@ class TeamZone:
 
     def draw_energy(self):
         size = 35
-        image_path = IMAGES_DIR.joinpath('energy.png')
+        image_path = ICONS_DIR.joinpath('energy.png')
         energy_surf = get_image(image_path, 2 * (size, ))
         energy = self.team.energy
 
@@ -260,7 +312,7 @@ class Area:
 
 class HeroZone:
 
-    size = (170, 120)
+    size = (180, 120)
 
     def __init__(self, hero):
         self.hero_obj = hero
@@ -269,7 +321,7 @@ class HeroZone:
         self.hero_image_sprite = HeroImage(hero)
         self.hp_surface = self.create_hp_surface()
 
-        self.draw_hero_hp()
+        self.draw_hero_img_hp()
         self.draw_icons()
         self.draw_hero_id()
 
@@ -302,20 +354,19 @@ class HeroZone:
 
     def draw_icons(self):
         max_num_of_icons = 2
-        icon_h = 30
+        icon_size = 35
         inactive_icon_alpha = 150
 
         zone_w, zone_h = self.size
         img_w, _ = self.hero_image_sprite.size
 
-        icon_w = int(0.75 * icon_h)
-        stun = get_image(IMAGES_DIR.joinpath('stun.png'), (icon_w, icon_h)).convert_alpha()
-        shield = get_image(IMAGES_DIR.joinpath('shield.png'), (icon_w, icon_h)).convert_alpha()
+        stun = get_image(ICONS_DIR.joinpath('stun_target.png'), 2 * (icon_size, )).convert_alpha()
+        shield = get_image(ICONS_DIR.joinpath('shield_self.png'), 2 * (icon_size, )).convert_alpha()
 
         distributed_height = zone_h / max_num_of_icons
 
-        w = img_w + (zone_w - img_w - icon_w) / 2
-        h = distributed_height / 2 - icon_h / 2
+        w = img_w + (zone_w - img_w - icon_size) / 2 + 5
+        h = distributed_height / 2 - icon_size / 2
         if not self.hero_obj.stunned:
             stun.set_alpha(inactive_icon_alpha)
         self.surface.blit(stun, (w, h))
@@ -339,7 +390,7 @@ class HeroZone:
             h = (hero_zone_h - text.get_height()) / 2
             self.surface.blit(text, (w, h))
 
-    def draw_hero_hp(self):
+    def draw_hero_img_hp(self):
         zone_w, zone_h = self.size
         image_w, image_h = self.hero_image_sprite.surface.get_size()
         hp_bar_w, hp_bar_h = self.hp_surface.get_size()
