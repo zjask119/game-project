@@ -12,5 +12,8 @@ class Attack:
         self.range = range_
         self.sacrifice = sacrifice
 
+        # GUI
+        self.id = None
+
     def __repr__(self):
         return f'{self.name}, power: {self.power}, cost: {self.cost}'

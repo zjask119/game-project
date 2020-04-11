@@ -34,9 +34,11 @@ class Hero:
         self.active = False
         self.victim = False
         self.img_path = img_path
+        self.id = None
 
     def add_move(self, move):
         assert isinstance(move, Attack)
+        move.id = len(self.moves) + 1
         self.moves.append(move)
 
     def reset_shield(self):
@@ -207,7 +209,6 @@ class Hero:
     def self_recovery(self):
         recovery = round(self.recovery / 100 * self.hp, 1)
         self.hp = min(self.hp + recovery, self.initial_hp)
-        self.update_attributes()
 
     def __repr__(self):
         return (f'{self.name} with Hp: {self.hp}, def: {self.defence}, '

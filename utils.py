@@ -9,7 +9,7 @@ from models.team import Team
 
 
 def get_heroes_from_db():
-    conn = sqlite3.connect('base.db')
+    conn = sqlite3.connect('../base.db')
     cursor = conn.cursor()
     query = 'select id, name, hp, defence, speed, recovery, mind, path from Hero'
     cursor.execute(query)

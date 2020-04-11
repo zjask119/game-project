@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import pygame
 
 from config import IMAGES_DIR
@@ -38,7 +40,8 @@ class Board:
 
         self.prepare_team_zones()
         self.draw_team_zones()
-        self.render_text()
+        self.render_round_text()
+        self.render_moves()
 
     def add_team_zone(self, team_zone):
         self.team_zones.append(team_zone)
@@ -65,7 +68,7 @@ class Board:
             pos = (index * team_zone_w, 0)
             self.surface.blit(team_zone.surface, pos)
 
-    def render_text(self):
+    def render_round_text(self):
         font_size = 50
         font_alpha = 170
 
@@ -77,6 +80,49 @@ class Board:
         w = (board_w - text.get_width()) / 2
         h = 20
         self.surface.blit(text, (w, h))
+
+    def render_moves(self):
+        active_hero = self.game_obj.get_active_hero()
+        if not active_hero or active_hero.team.npc:
+            return
+
+        font_size = 25
+        font_alpha = 230
+        text_margin_w = 20
+        text_margin_h = 10
+        bottom_margin = left_margin = 20
+        fields = ['id', 'name', 'sacrifice', 'type', 'range', 'cost']
+
+        lines = [fields]
+        for obj in active_hero.moves:
+            row = [getattr(obj, field) for field in fields]
+            lines.append(row)
+
+        text_surfaces = []
+        max_column_length = defaultdict(int)
+        for line in lines:
+            line_texts = []
+            for i, entry in enumerate(line):
+                font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
+                text = font.render(str(entry), True, WHITE)
+                text.set_alpha(font_alpha)
+                max_column_length[i] = max(
+                    max_column_length[i], text.get_width() + text_margin_w
+                )
+                line_texts.append(text)
+            text_surfaces.append(line_texts)
+
+        board_w, board_h = self.surface.get_size()
+        for i, line in enumerate(text_surfaces):
+            w = left_margin
+            h = board_h - (len(text_surfaces) - i) * (line[0].get_height() + text_margin_h) - bottom_margin  # noqa
+            for j, entry in enumerate(line, 0):
+                w += max_column_length[j - 1] if j > 0 else 0
+                surf = pygame.Surface((max_column_length[j], entry.get_height() + text_margin_h))
+                rect = surf.get_rect()
+                pygame.draw.rect(surf, WHITE, rect, 1)
+                surf.blit(entry, (text_margin_w / 2, text_margin_h / 2))
+                self.surface.blit(surf, (w, h))
 
     def get_size(self):
         return self.surface.get_size()
@@ -161,9 +207,9 @@ class Area:
             hero_sprint = HeroZone(hero)
             point_w, point_h = hero_sprint.size
 
-            x = area_w / 2 - point_w / 2
-            y = num * distributed_height + distributed_height / 2 - point_h / 2 + margin_h / 2
-            self.surface.blit(hero_sprint.surface, (x, y))
+            w = area_w / 2 - point_w / 2
+            h = num * distributed_height + distributed_height / 2 - point_h / 2 + margin_h / 4
+            self.surface.blit(hero_sprint.surface, (w, h))
 
     def get_size(self):
         return self.surface.get_size()
@@ -171,7 +217,7 @@ class Area:
 
 class HeroZone:
 
-    size = (150, 120)
+    size = (170, 120)
 
     def __init__(self, hero):
         self.hero_obj = hero
@@ -182,6 +228,7 @@ class HeroZone:
 
         self.draw_hero_hp()
         self.draw_icons()
+        self.draw_hero_id()
 
     def create_hp_surface(self):
         width = self.hero_image_sprite.size[0]
@@ -225,24 +272,37 @@ class HeroZone:
         distributed_height = zone_h / max_num_of_icons
 
         w = img_w + (zone_w - img_w - icon_w) / 2
-
-        h = 0 * distributed_height + distributed_height / 2 - icon_h / 2
+        h = distributed_height / 2 - icon_h / 2
         if not self.hero_obj.stunned:
             stun.set_alpha(inactive_icon_alpha)
         self.surface.blit(stun, (w, h))
 
-        h = 1 * distributed_height + distributed_height / 2 - icon_h / 2
+        h += distributed_height
         if self.hero_obj.shield == 0:
             shield.set_alpha(inactive_icon_alpha)
         self.surface.blit(shield, (w, h))
+
+    def draw_hero_id(self):
+        font_size = 53
+        font_alpha = 240
+
+        if self.hero_obj.id:
+            font = pygame.font.Font(None, font_size)
+            text = font.render(str(self.hero_obj.id), True, WHITE)
+            text.set_alpha(font_alpha)
+
+            _, hero_zone_h = self.surface.get_size()
+            w = 0
+            h = (hero_zone_h - text.get_height()) / 2
+            self.surface.blit(text, (w, h))
 
     def draw_hero_hp(self):
         zone_w, zone_h = self.size
         image_w, image_h = self.hero_image_sprite.surface.get_size()
         hp_bar_w, hp_bar_h = self.hp_surface.get_size()
 
-        self.surface.blit(self.hero_image_sprite.surface, (0, (zone_h - image_h + hp_bar_h) / 2))
-        self.surface.blit(self.hp_surface, (0, (zone_h - image_h + hp_bar_h) / 2 - hp_bar_h))
+        self.surface.blit(self.hero_image_sprite.surface, (20, (zone_h - image_h + hp_bar_h) / 2))
+        self.surface.blit(self.hp_surface, (20, (zone_h - image_h + hp_bar_h) / 2 - hp_bar_h))
 
 
 class HeroImage(pygame.sprite.Sprite):

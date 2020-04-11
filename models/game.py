@@ -25,6 +25,11 @@ class Game:
     def get_alive_heroes(self, sorted_by='speed'):
         return [hero for hero in self.get_all_heroes(sorted_by) if hero.alive]
 
+    def get_active_hero(self):
+        for hero in self.get_alive_heroes():
+            if hero.active:
+                return hero
+
     @staticmethod
     def ask_number(values):
         while True:
@@ -70,12 +75,12 @@ class Game:
         return victim
 
     def prepare_round(self, team_energy):
-        for team in self.teams:
-            team.reduce_heroes_attributes()
-            team.set_energy(team_energy)
         for hero in self.get_all_heroes():
             hero.reset_shield()
             hero.self_recovery()
+        for team in self.teams:
+            team.update_heroes_attributes()
+            team.set_energy(team_energy)
 
     def reset_attributes(self):
         for hero in self.get_all_heroes():

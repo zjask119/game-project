@@ -64,7 +64,7 @@ def get_line_str(proportions):
     return line
 
 
-def print_table(data, fields, proportions, with_indices=True):
+def get_table(data, fields, proportions, with_indices=True):
     if data:
         for attr in fields:
             assert hasattr(data[0], attr)
@@ -87,22 +87,34 @@ def print_table(data, fields, proportions, with_indices=True):
     for row in new_data:
         msg += get_row_str(proportions, row) + '\n'
     msg += get_line_str(proportions) + '\n'
-    print(msg)
+    return msg
+
+
+def get_table_moves(moves, with_indices=True):
+    proportions = [4, 30, 11, 11, 11, 15, 11, 6]
+    fields = ['name', 'power', 'speed', 'sacrifice', 'type', 'range', 'cost']
+    return get_table(moves, fields, proportions, with_indices)
+
+
+def get_table_heroes(heroes, with_indices=True):
+    proportions = [4, 30, 11, 11, 11, 11]
+    fields = ['name', 'hp', 'defence', 'speed', 'area']
+    return get_table(heroes, fields, proportions, with_indices)
+
+
+def get_table_hero_areas(areas):
+    proportions = [7, 10]
+    fields = ['value', 'name']
+    return get_table(areas, fields, proportions, with_indices=False)
 
 
 def print_moves(moves, with_indices=True):
-    proportions = [4, 30, 11, 11, 11, 15, 11, 6]
-    fields = ['name', 'power', 'speed', 'sacrifice', 'type', 'range', 'cost']
-    print_table(moves, fields, proportions, with_indices)
+    print(get_table_moves(moves, with_indices))
 
 
 def print_heroes(heroes, with_indices=True):
-    proportions = [4, 30, 11, 11, 11, 11]
-    fields = ['name', 'hp', 'defence', 'speed', 'area']
-    print_table(heroes, fields, proportions, with_indices)
+    print(get_table_heroes(heroes, with_indices))
 
 
 def print_hero_areas(areas):
-    proportions = [7, 10]
-    fields = ['value', 'name']
-    print_table(areas, fields, proportions, with_indices=False)
+    print(get_table_hero_areas(areas))
