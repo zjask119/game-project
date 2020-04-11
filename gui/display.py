@@ -354,7 +354,7 @@ def get_image(filepath, img_size=None):
     return img
 
 
-def main():
+def run_gui():
     pygame.init()
 
     # Set up the drawing window
@@ -381,4 +381,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run_gui()

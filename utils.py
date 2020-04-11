@@ -1,6 +1,7 @@
 import sqlite3
 from random import sample
 
+from config import DB_DIR
 from displayer import print_error, print_hero_areas, print_heroes
 from models.attack import Attack
 from models.enums import HeroAreaEnum
@@ -9,7 +10,7 @@ from models.team import Team
 
 
 def get_heroes_from_db():
-    conn = sqlite3.connect('../base.db')
+    conn = sqlite3.connect(DB_DIR)
     cursor = conn.cursor()
     query = 'select id, name, hp, defence, speed, recovery, mind, path from Hero'
     cursor.execute(query)

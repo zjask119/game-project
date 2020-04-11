@@ -67,5 +67,12 @@ def run_game():
 
 
 if __name__ == "__main__":
-    for _ in run_game():
-        pass
+    import sys
+
+    if len(sys.argv) == 1:
+        for _ in run_game():
+            pass
+    elif len(sys.argv) == 2 and sys.argv[1] == 'gui':
+        from gui.display import run_gui
+
+        run_gui()
