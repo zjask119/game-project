@@ -34,7 +34,7 @@ class Board:
 
     def __init__(self, game, size):
         image_path = IMAGES_DIR.joinpath('background.jpg')
-        self.surface = get_image(image_path, size)
+        self.surface = get_image(image_path, size).convert_alpha()
         self.game_obj = game
         self.team_zones = []
 
@@ -99,6 +99,8 @@ class MovesZone:
 
     def __init__(self, game, width):
         self.surface = pygame.Surface((width, self.height))
+        # self.surface.set_alpha(230)
+        # self.surface.fill(BLACK)
         self.game_obj = game
         self.prepare_moves_surface()
 
@@ -111,14 +113,20 @@ class MovesZone:
         if not num_zones:
             return
 
+        num_zones = max(num_zones, 4)
+
         zone_w = int(self.surface.get_width() / num_zones)
         zone_h = self.height
         zone_size = (zone_w, zone_h)
 
-        for i, move in enumerate(active_hero.moves):
-            move_zone = Move(move, zone_size)
-
-            self.surface.blit(move_zone.surface, (i * zone_w, 0))
+        for i in range(num_zones):
+            try:
+                move = active_hero.moves[i]
+            except IndexError:
+                continue
+            else:
+                move_zone = Move(move, zone_size)
+                self.surface.blit(move_zone.surface, (i * zone_w, 0))
 
 
 class Move:
@@ -139,7 +147,7 @@ class Move:
             ('attack', 'target'): 'attack_target.png',
             ('attack const', 'area'): 'attack_const_area.png',
             ('attack const', 'target'): 'attack_const_target.png',
-            ('attack stun', 'area'): 'stun_target.png',
+            ('attack stun', 'area'): 'stun_area.png',
             ('drain', 'target'): 'drain_target.png',
             ('heal', 'self'): 'heal_self.png',
             ('heal', 'self area'): 'heal_self_area.png',
