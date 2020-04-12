@@ -10,7 +10,7 @@ from models.game import Game
 class Hero:
 
     def __init__(self, name: str, hp: float, defence: float,
-                 speed: float, recovery: float, img_path=None,
+                 speed: float, recovery: float, mind: int, img_path=None,
                  area: HeroAreaEnum = None):
         self.name = name
         self.area = area
@@ -19,6 +19,7 @@ class Hero:
         self.defence = defence
         self.speed = speed
         self.recovery = recovery
+        self.mind = mind
 
         self.initial_hp = hp
         self.initial_defence = defence
@@ -26,7 +27,7 @@ class Hero:
 
         self.moves = []
         self.alive = True
-        self.stunned = False
+        self.stunned = 0
         self.shield = 0
         self.team = None
 
@@ -43,7 +44,7 @@ class Hero:
 
     def reset_flags(self):
         self.shield = 0
-        self.stunned = False
+        self.stunned -= 1
 
     @property
     def reduction_factor(self):
@@ -77,9 +78,14 @@ class Hero:
         return chance
 
     @staticmethod
-    def calculate_damage(attack, victim_hero, damage_multiplier=1):
-        damage = damage_multiplier * attack.power - victim_hero.defence - victim_hero.shield
+    def calculate_damage(attack, victim_hero, damage_multiplier, defence_multiplier):
+        damage = (
+            (damage_multiplier * attack.power)
+            - (defence_multiplier * victim_hero.defence)
+            - victim_hero.shield
+        )
         damage = round(damage, 1)
+
         return max(0, damage)
 
     def hp_reduction(self, damage):
@@ -121,21 +127,38 @@ class Hero:
         heal = round(heal, 1)
         Hero.increase_hp(hero, heal)
 
+    def critical_and_block_calculation(self, target):
+        base_chance = 15
+        damage_multiplier = defence_multiplier = 1
+        self_critical_chance = max(base_chance + (self.mind - target.mind) / 2, 0)
+        targets_block_chance = max(base_chance + (target.mind - self.mind) / 2, 0)
+
+        critical_success = random.random() <= self_critical_chance / 100
+        block_success = random.random() <= targets_block_chance / 100
+        print(f'Chance for critical: {self_critical_chance}% , '
+              f'Chance for block: {targets_block_chance}%')
+        if critical_success:
+            damage_multiplier = 1.5
+            print('Critical hit!')
+        if block_success:
+            defence_multiplier = 2
+            print(f'Attack has been blocked by {target.name}!')
+
+        return damage_multiplier, defence_multiplier
+
     def take_action(self, target_team):
 
         print(
             f'{self.team.name} move [ENERGY: {self.team.energy}] - {self.name} is taking action.\n'
         )
 
-        if self.stunned:
+        if self.stunned > 0:
             print(f'{self.name} is stunned and cannot move!')
             return
 
         move = self.choose_move()
 
         self.team.energy -= move.cost
-        if move.sacrifice:
-            self.hp_reduction(move.sacrifice)
 
         if move.type in ('attack', 'attack const', 'stun', 'attack stun', 'drain'):
             target_hero = Game.choose_target(self.team, target_team)
@@ -153,27 +176,33 @@ class Hero:
             for victim in victims:
                 victim.victim = True
                 print(f'{self.name} is attacking {victim.name}.')
-                success = random.random() < self.hit_chance(move, victim)
-                if success:
-                    if move.type == 'stun':
-                        victim.stunned = True
-                        print(f'{victim.name} has been stunned!\n')
+                if move.type == 'stun':
+                    success = random.random() <= round(move.speed / 100, 2)
+                    print(f'Success rate: {round(move.speed, 1)}%')
+                    if success:
+                        victim.stunned = move.power
+                        print(f'{victim.name} has been stunned for {move.power} round(s)!\n')
                         continue
+                    else:
+                        print('You missed!\n')
+                        continue
+                success = random.random() <= self.hit_chance(move, victim)
+                if success:
 
-                    if move.type == 'attack stun':
-                        victim.stunned = True
-                        print(f'{victim.name} has been stunned!\n')
-
-                    damage_multiplier = 1
+                    dmg_multiplier, def_multiplier = self.critical_and_block_calculation(victim)
                     if victim != target_hero:
-                        damage_multiplier = 0.75
-                    damage = self.calculate_damage(move, victim, damage_multiplier)
+                        dmg_multiplier *= 0.75
+                    damage = self.calculate_damage(move, victim, dmg_multiplier, def_multiplier)
 
                     if move.type == 'drain':
                         Hero.increase_hp(self, damage)
 
                     victim.hp_reduction(damage)
                     print(f'You hit and dealt {damage} damage points!\n')
+
+                    if move.type == 'attack stun' and damage > 0:
+                        victim.stunned = 1
+                        print(f'{victim.name} has been stunned for 1 round!\n')
 
                     if not victim.alive:
                         print_yellow(f'{victim.name} is dead!\n')
@@ -209,6 +238,9 @@ class Hero:
         else:
             # raise NotImplementedError
             return None
+
+        if move.sacrifice:
+            self.hp_reduction(move.sacrifice)
 
     def self_recovery(self):
         recovery = round(self.recovery / 100 * self.hp, 1)

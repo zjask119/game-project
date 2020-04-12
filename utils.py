@@ -28,7 +28,7 @@ def get_heroes_from_db():
 
     for db_hero in db_heroes:
         hero_id, name, hp, defence, speed, recovery, mind, img_path = db_hero
-        hero = Hero(name, hp, defence, speed, recovery, img_path)
+        hero = Hero(name, hp, defence, speed, recovery, mind, img_path)
         heroes[hero_id] = hero
 
     for db_move in db_moves:
