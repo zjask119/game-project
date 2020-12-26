@@ -10,7 +10,7 @@ from models.game import Game
 class Hero:
 
     def __init__(self, name: str, hp: float, defence: float,
-                 speed: float, recovery: float, mind: int, img_path=None,
+                 speed: float, recovery: float, mind: int, race: str, img_path=None,
                  area: HeroAreaEnum = None):
         self.name = name
         self.area = area
@@ -19,6 +19,7 @@ class Hero:
         self.defence = defence
         self.speed = speed
         self.recovery = recovery
+        self.race = race
         self.mind = mind
 
         self.initial_hp = hp
@@ -52,13 +53,14 @@ class Hero:
         return round(math.sqrt(factor), 2)
 
     def update_attributes(self):
-        self.speed = round(self.initial_speed * self.reduction_factor, 1)
-        self.defence = round(self.initial_defence * self.reduction_factor, 1)
-        for move in self.moves:
-            if move.type in ('attack const', 'heal'):
-                continue
-            move.power = round(move.initial_power * self.reduction_factor, 1)
-            move.speed = round(move.initial_speed * self.reduction_factor, 1)
+        if self.race != 'android':
+            self.speed = round(self.initial_speed * self.reduction_factor, 1)
+            self.defence = round(self.initial_defence * self.reduction_factor, 1)
+            for move in self.moves:
+                if move.type in ('attack const', 'heal', 'stun'):
+                    continue
+                move.power = round(move.initial_power * self.reduction_factor, 1)
+                move.speed = round(move.initial_speed * self.reduction_factor, 1)
 
     @staticmethod
     def hit_chance(attack, victim_hero):
@@ -76,6 +78,36 @@ class Hero:
 
         print(f'Success rate: {round(chance * 100, 1)}%')
         return chance
+
+    @property
+    def overall(self):
+        move = self.moves[0]
+        if move.type == 'attack' and move.name != 'Sword Attack':
+            power = move.power
+        else:
+            power = self.defence
+        overall = self.hp + self.defence + self.speed + power
+        return int(overall / 3)
+
+    @staticmethod
+    def calc_standard_damage(attacker, victim_hero, attack, damage_multiplier, defence_multiplier):
+        level_difference = victim_hero.overall / attacker.overall
+        if level_difference >= 2:
+            return 0
+        modifier = 2 - level_difference
+        modifier = modifier ** 3
+        if modifier < 1:
+            modifier = 1
+        damage = (
+            (damage_multiplier * 1.35 * attack.power)
+            - (defence_multiplier * victim_hero.defence)
+            - victim_hero.shield
+        )
+        if damage > 0:
+            damage = damage / 3 * modifier
+            return round(damage, 1)
+        else:
+            return 0
 
     @staticmethod
     def calculate_damage(attack, victim_hero, damage_multiplier, defence_multiplier):
@@ -138,10 +170,10 @@ class Hero:
         print(f'Chance for critical: {self_critical_chance}% , '
               f'Chance for block: {targets_block_chance}%')
         if critical_success:
-            damage_multiplier = 1.5
+            damage_multiplier = 1.25
             print('Critical hit!')
         if block_success:
-            defence_multiplier = 2
+            defence_multiplier = 1.5
             print(f'Attack has been blocked by {target.name}!')
 
         return damage_multiplier, defence_multiplier
@@ -149,7 +181,7 @@ class Hero:
     def take_action(self, target_team):
 
         print(
-            f'{self.team.name} move [ENERGY: {self.team.energy}] - {self.name} is taking action.\n'
+            f'{self.team.name} move [ENERGY: {self.team.energy}] - {self.name} ( {self.overall} ) is taking action.\n'
         )
 
         if self.stunned > 0:
@@ -160,7 +192,7 @@ class Hero:
 
         self.team.energy -= move.cost
 
-        if move.type in ('attack', 'attack const', 'stun', 'attack stun', 'drain'):
+        if move.type in ('attack', 'attack const', 'energy', 'stun', 'attack stun', 'drain'):
             target_hero = Game.choose_target(self.team, target_team)
             if move.range == 'area':
                 victims = [hero for hero in target_hero.team.get_alive_heroes()
@@ -175,24 +207,76 @@ class Hero:
             print(f'{self.name} is using {move.range} attack {move.name}.')
             for victim in victims:
                 victim.victim = True
-                print(f'{self.name} is attacking {victim.name}.')
+                print(f'{self.name} ( {self.overall} ) is attacking {victim.name} ( {victim.overall} )')
+                android_list = ['Evil Containment Wave',
+                                'Telekinesis',
+                                'Magic Touch',
+                                'Stripping',
+                                'Bad Breath',
+                                'Hypnosis',
+                                'Devilmite Beam'
+                                ]
+
+                if move.name in android_list and victim.race == 'android':
+                    print(f'It has no effect on {victim.name}!')
+                    continue
+
+                if move.name == 'Devilmite Beam' and victim.name in ('Son Goku',
+                                                                     'Chi Chi',
+                                                                     'Nam',
+                                                                     'Son Gohan',
+                                                                     'Upa',
+                                                                     'Bora',
+                                                                     'Korin',
+                                                                     'Kami',
+                                                                     'Mr. Popo'):
+                    print(f'It has no effect on {victim.name}!')
+                    continue
+
+                if move.type == 'energy' and victim.name in ('Mr. Popo'):
+                    print(f'It has no effect on {victim.name}!')
+                    continue
+
                 if move.type == 'stun':
                     success = random.random() <= round(move.speed / 100, 2)
                     print(f'Success rate: {round(move.speed, 1)}%')
                     if success:
-                        victim.stunned = move.power
-                        print(f'{victim.name} has been stunned for {move.power} round(s)!\n')
+                        if move.name == 'Evil Containment Wave':
+                            if victim.name != 'Piccolo':
+                                victim.defence = 1
+                                victim.hp = 1
+                                print(f'{victim.name} has been trapped!\n')
+                                victim.stunned = move.power
+                            else:
+                                self.stunned = move.power
+                                print('Piccolo used Evil Containment Wave Reflection!')
+                                print(
+                                    f'{self.name} has been trapped!\n')
+                        else:
+                            print(f'{victim.name} has been stunned for {move.power} round(s)!\n')
+                            victim.stunned = move.power
                         continue
                     else:
                         print('You missed!\n')
                         continue
+
+                if move.type == 'attack stun' and move.speed > victim.defence:
+                    victim.stunned = move.power
+                    print(f'{victim.name} has been stunned for {move.power} round(s)!\n')
+                    continue
+
                 success = random.random() <= self.hit_chance(move, victim)
                 if success:
 
                     dmg_multiplier, def_multiplier = self.critical_and_block_calculation(victim)
                     if victim != target_hero:
-                        dmg_multiplier *= 0.75
-                    damage = self.calculate_damage(move, victim, dmg_multiplier, def_multiplier)
+                        dmg_multiplier *= 0.8
+                    if move.type == 'attack':
+                        damage = self.calc_standard_damage(
+                            self, victim, move, dmg_multiplier, def_multiplier)
+                        print(f'{damage}!!!')
+                    else:
+                        damage = self.calculate_damage(move, victim, dmg_multiplier, def_multiplier)
 
                     if move.type == 'drain':
                         Hero.increase_hp(self, damage)
@@ -221,6 +305,14 @@ class Hero:
                 print(f'{hero.name} got {move.power} shield.')
                 hero.shield += move.power
 
+        elif move.type == 'revive':
+            target = Game.choose_dead_hero(self.team)
+            if target.race == 'android' and move.name != 'Rebuild':
+                print(f'Cannot revive {target.name}!')
+            else:
+                target.alive = True
+                Hero.heal_hero(move, target)
+
         elif move.type == 'heal':
             if move.range == 'self':
                 target_heroes = [self]
@@ -234,13 +326,26 @@ class Hero:
                 return None
 
             for hero in target_heroes:
-                Hero.heal_hero(move, hero)
+                if hero.race != 'android':
+                    if move.name != 'Repair':
+                        Hero.heal_hero(move, hero)
+                    else:
+                        print(f'Repairing has no effect on {hero.name}!')
+                elif hero.race == 'android':
+                    if move.name == 'Repair':
+                        Hero.heal_hero(move, hero)
+                    else:
+                        print(f'Healing has no effect on {hero.name}!')
+                else:
+                    print(f'It has no effect on {hero.name}!')
         else:
             # raise NotImplementedError
             return None
 
         if move.sacrifice:
-            self.hp_reduction(move.sacrifice)
+            sacrifice = move.sacrifice * 0.01
+            sacrifice *= self.hp
+            self.hp_reduction(sacrifice)
 
     def self_recovery(self):
         recovery = round(self.recovery / 100 * self.hp, 1)

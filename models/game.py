@@ -25,6 +25,9 @@ class Game:
     def get_alive_heroes(self, sorted_by='speed'):
         return [hero for hero in self.get_all_heroes(sorted_by) if hero.alive]
 
+    def get_dead_heroes(self, sorted_by='speed'):
+        return [hero for hero in self.get_all_heroes(sorted_by) if not hero.alive]
+
     def get_active_hero(self):
         for hero in self.get_alive_heroes():
             if hero.active:
@@ -64,6 +67,15 @@ class Game:
             return heroes[num - 1]
         else:
             return heroes[num - 1]
+
+    @staticmethod
+    def choose_dead_hero(attacking_team):
+        heroes = attacking_team.get_dead_heroes()
+
+        print('\nChoose dead hero to revive:')
+        print_heroes(heroes)
+        num = Game.ask_number(heroes)
+        return heroes[num - 1]
 
     @staticmethod
     def random_target(heroes):

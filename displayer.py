@@ -98,7 +98,7 @@ def get_table_moves(moves, with_indices=True):
 
 def get_table_heroes(heroes, with_indices=True):
     proportions = [4, 30, 11, 11, 11, 11]
-    fields = ['name', 'hp', 'defence', 'speed', 'area']
+    fields = ['name', 'hp', 'defence', 'speed', 'overall']
     return get_table(heroes, fields, proportions, with_indices)
 
 
