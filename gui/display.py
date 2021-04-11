@@ -24,8 +24,8 @@ ORANGE = (255, 153, 0)
 YELLOW = (247, 237, 0)
 
 # screen size
-SCREEN_WIDTH = 1366
-SCREEN_HEIGHT = 768
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 720
 
 
 class Board:
@@ -148,6 +148,8 @@ class Move:
             ('attack const', 'area'): 'attack_const_area.png',
             ('attack const', 'target'): 'attack_const_target.png',
             ('attack stun', 'area'): 'stun_area.png',
+            ('attack stun', 'target'): 'stun_target.png',
+            ('stun', 'area'): 'stun_area.png',
             ('drain', 'target'): 'drain_target.png',
             ('heal', 'self'): 'heal_self.png',
             ('heal', 'self area'): 'heal_self_area.png',
@@ -155,6 +157,9 @@ class Move:
             ('shield', 'self'): 'shield_self.png',
             ('shield', 'self area'): 'shield_self_area.png',
             ('stun', 'target'): 'stun_target.png',
+            ('energy', 'target'): 'attack_const_target.png',
+            ('energy', 'area'): 'attack_const_area.png',
+            ('revive', 'target'): 'heal_target.png',
         }
 
         return icon_map[(type_, range_)]
@@ -180,7 +185,7 @@ class Move:
         return surf
 
     def get_move_name_surf(self):
-        font_size = 30
+        font_size = 20
         font_alpha = 230
         font = pygame.font.SysFont(None, font_size)
         text = font.render(str(self.move_obj.name), True, WHITE)
@@ -320,7 +325,7 @@ class Area:
 
 class HeroZone:
 
-    size = (180, 120)
+    size = (200, 120)
 
     def __init__(self, hero):
         self.hero_obj = hero
@@ -408,7 +413,7 @@ class HeroZone:
 
 
 class HeroImage(pygame.sprite.Sprite):
-    size = 2 * (100, )
+    size = (133, 100)
     border_size = 3
 
     images_filepath = IMAGES_DIR.joinpath('characters')
@@ -468,11 +473,10 @@ def run_gui():
     running = True
     while running:
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
         for game in run_game():
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
             board = Board(game, (SCREEN_WIDTH, SCREEN_HEIGHT))
             screen.blit(board.surface, (0, 0))
 

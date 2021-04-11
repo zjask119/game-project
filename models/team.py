@@ -34,6 +34,10 @@ class Team:
         heroes = [hero for hero in self.get_all_heroes(area, sorted_by) if hero.alive]
         return heroes
 
+    def get_dead_heroes(self, area=None, sorted_by='speed'):
+        heroes = [hero for hero in self.get_all_heroes(area, sorted_by) if not hero.alive]
+        return heroes
+
     def is_anybody_alive(self):
         return any(self.get_alive_heroes())
 
