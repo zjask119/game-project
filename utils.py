@@ -12,7 +12,7 @@ from models.team import Team
 def get_heroes_from_db():
     conn = sqlite3.connect(DB_DIR)
     cursor = conn.cursor()
-    query = 'select id, name, hp, defence, speed, recovery, mind, race, path from Hero'
+    query = 'select id, name, hp, defence, speed, recovery, mind, race, nature, movement, sense, solar, path from Hero'
     cursor.execute(query)
     db_heroes = cursor.fetchall()
 
@@ -27,8 +27,8 @@ def get_heroes_from_db():
     moves = []
 
     for db_hero in db_heroes:
-        hero_id, name, hp, defence, speed, recovery,  mind, race,img_path = db_hero
-        hero = Hero(name, hp, defence, speed, recovery, mind, race, img_path)
+        hero_id, name, hp, defence, speed, recovery, mind, race, nature, movement, sense, solar, img_path = db_hero
+        hero = Hero(name, hp, defence, speed, recovery, mind, race, nature, movement, sense, solar, img_path)
         heroes[hero_id] = hero
 
     for db_move in db_moves:
@@ -44,6 +44,9 @@ def get_heroes_from_db():
         if move.speed is None:
             move.speed = hero.speed * 1.1
             move.initial_speed = hero.speed * 1.1
+        elif move.type == 'energy' or move.type == 'attack':
+            move.speed = 0.01 * move.speed * hero.speed
+            move.initial_speed = 0.01 * move.initial_speed * hero.speed
         hero.add_move(move)
 
     return list(heroes.values())
